@@ -37,7 +37,7 @@ public class NewDatabaseEngine {
 	
 	public void createdb(String thingy){
 		try{
-			File database = new File("/data/database.txt");
+			File database = new File("database.txt");
 			if (!database.exists()) {
 				database.createNewFile();
 			}
@@ -140,7 +140,7 @@ public class NewDatabaseEngine {
 	
 	
 	public void runQuery(String check_term_line) throws IOException{
-		File database = new File("/data/database.txt");
+		File database = new File("database.txt");
 		if (!database.exists()) {
 			return;
 		}
