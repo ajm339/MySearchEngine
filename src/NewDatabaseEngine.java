@@ -10,6 +10,8 @@ import java.io.PrintWriter;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.List;
@@ -138,7 +140,6 @@ public class NewDatabaseEngine {
 		return result;
 	}
 	
-	
 	public void runQuery(String check_term_line) throws IOException{
 		File database = new File("database.txt");
 		if (!database.exists()) {
@@ -151,15 +152,32 @@ public class NewDatabaseEngine {
 			System.out.println(" caught a " + e.getClass() + "\n with message: " + e.getMessage());
 		}
 		BufferedReader buff = new BufferedReader(new InputStreamReader(fis));
-		ArrayList<ArrayList <String>> stringArray = new ArrayList<ArrayList <String>>();;
+		ArrayList<ArrayList <String>> stringArray = new ArrayList<ArrayList <String>>();
 		String line = null;
 		ArrayList<String> check_terms = (ArrayList<String>)tokenizeString(check_term_line);
 		while((line = buff.readLine())!=null){
 		   stringArray.add(check_line(line,check_terms));
 		}
+		Collections.sort(stringArray, new DocListComparator());
 		
+		ArrayList <String> resultArray = new ArrayList <String>();
+		
+		for( ArrayList<String> x : stringArray.subList(0,100)){
+			resultArray.add(x.get(0));
+		}
+		
+		System.out.println(resultArray);
 		
 	}
+	
+	static class DocListComparator implements Comparator<ArrayList<String>>
+	 {
+	     public int compare(ArrayList<String> l1, ArrayList<String> l2)
+	     {
+	    	 //Sorts in reverse
+	         return ((Integer)Integer.parseInt(l2.get(1))).compareTo((Integer)Integer.parseInt(l1.get(1)));
+	     }
+	 }
 	
 	public ArrayList <String> check_line(String line, List<String> check_terms){
 		Integer res = 0;

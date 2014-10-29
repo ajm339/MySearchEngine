@@ -5,7 +5,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Date;
-import java.util.HashMap;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.util.CharArraySet;
@@ -111,8 +110,6 @@ public class IndexFiles {
 
 			writer = new IndexWriter(dir, iwc);
 			// Write the index into them.
-			System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>");
-			System.out.println(docDir);
 			indexDocs(writer, docDir);
 
 			Date end = new Date();
@@ -173,18 +170,13 @@ public class IndexFiles {
 					doc.add(new TextField("contents", new BufferedReader(new InputStreamReader(fis))));
 //					System.out.println("[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[");
 //					System.out.println(new BufferedReader(new InputStreamReader(fis)).readLine());
-
+//					
 //					BufferedReader buff = new BufferedReader(new InputStreamReader(fis));
-//					StringBuffer stringBuffer = new StringBuffer();
-//					String line = null;
-//					while((line =buff.readLine())!=null){
-//					   stringBuffer.append(line).append("\n");
-//					}
-//					String[] words = stringBuffer.toString().split("\\s+");
-//					System.out.println(stringBuffer.toString());
-					
-					HashMap<String,Integer> tokens = AnalyzeThings(new BufferedReader(new InputStreamReader(fis)));
-					
+//					String x = "";
+//					do{
+//						x += buff.readLine();				
+//					}while(x != null);
+//					String[] words = x.split(" ");
 					// New index, so we just add the document (no old document can be there):
 					// System.out.println("adding " + file);
 					writer.addDocument(doc);
@@ -201,26 +193,4 @@ public class IndexFiles {
 			}
 		}
 	}	
-	
-	static HashMap<String,Integer> AnalyzeThings(BufferedReader buff) throws IOException{
-		StringBuffer stringBuffer = new StringBuffer();
-		String line = null;
-		while((line = buff.readLine())!=null){
-		   stringBuffer.append(line).append("\n");
-		}
-		String[] words = stringBuffer.toString().split("\\s+");
-		System.out.println(stringBuffer.toString());
-		System.out.println(words);
-		
-		HashMap map = new HashMap();
-		for(String x : words){
-			try{
-				map.put(x, (Integer)map.get(x) + 1);
-			}catch(NullPointerException e){
-				map.put(x, 1);
-			}
-		}
-		return map;
-		
-	}
 }

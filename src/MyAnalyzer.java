@@ -91,10 +91,10 @@ public class MyAnalyzer extends StopwordAnalyzerBase {
 //			e.printStackTrace();
 //		}
 		
-		System.out.println("______________________________________________");
+//		System.out.println("______________________________________________");
 //		System.out.println(tok);
-		System.out.println(src);
-		System.out.println("______________________________________________");
+//		System.out.println(src);
+//		System.out.println("______________________________________________");
 
 		return new TokenStreamComponents(src, tok) {
 			@Override
