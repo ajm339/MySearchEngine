@@ -211,8 +211,7 @@ public class NewDatabaseEngine {
 		List<String> terms = Arrays.asList(x[1].split("\\s*,\\s*"));
 		for(String g : terms){
 			for(String k : check_terms){
-				if (g == k){
-					System.out.println("+++++++++++++++++++++++++++++++++++++");
+				if (g.equals(k)){
 					res++;
 				}
 			}
@@ -220,10 +219,6 @@ public class NewDatabaseEngine {
 		ArrayList<String> result = new ArrayList<String>();
 		result.add(topic);
 		result.add(res.toString());
-		
-		System.out.println("::::::::::::::::::::::::::::::::::::::::::::::::::::::::");
-		System.out.println(topic);
-		System.out.println(res.toString());
 		
 		return result;
 	}
