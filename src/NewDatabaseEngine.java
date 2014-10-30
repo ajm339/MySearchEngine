@@ -38,6 +38,7 @@ public class NewDatabaseEngine {
 	public static String data = "";
 	public static CharArraySet stopwords;
 	public File database;
+	public static String database_name;
 	public static float atcatc = 0;
 	public static float atnatn = 0;
 	public static float annbpn = 0;
@@ -47,10 +48,9 @@ public class NewDatabaseEngine {
 	public static HashMap<String,Integer> docs_by_rel; //term to # rel_docs
 	public static HashMap<String,Integer> docs_with_term; //term to # total_docs
 	public static int total_docs = 0;
-	public static int relevant_doc_num;
+	public static HashMap<String,Integer> relevant_doc_num;
 	public static HashMap<String,Integer> term_freq_in_doc;
 	public static HashMap<String,Integer> term_freq_in_query;
-	
 	
 	public static void adjust_atcatc(){
 		
@@ -68,18 +68,17 @@ public class NewDatabaseEngine {
 		
 	}
 	
-	
 	public static void setStopwords(CharArraySet stops){
 		stopwords = stops;
 	}
 	
-	public static void buildIndex(String indexPath, String docsPath, CharArraySet stops) {
+	public static void buildIndex(String indexDir, String docsPath, CharArraySet stops) {
 		// Check whether docsPath is valid
 		if (docsPath == null || docsPath.isEmpty()) {
 			System.err.println("Document directory cannot be null");
 			System.exit(1);
 		}
-
+		
 		// Check whether the directory is readable
 		final File docDir = new File(docsPath);
 		if (!docDir.exists() || !docDir.canRead()) {
@@ -89,7 +88,8 @@ public class NewDatabaseEngine {
 		stopwords = stops;
 		
 		indexDocs(docDir);
-		createdb(data);
+		createdb(data,docsPath.split("/")[1]);
+		data = "";
 	}
 	
 	static void indexDocs(File file) {
@@ -177,9 +177,10 @@ public class NewDatabaseEngine {
 		return result;
 	}
 	
-	public static void createdb(String thingy){
+	public static void createdb(String thingy,String associated){
+		database_name = "data/"+ associated + "database.txt";
 		try{
-			File database = new File("data/database.txt");
+			File database = new File(database_name);
 			if (!database.exists()) {
 				database.createNewFile();
 			}
@@ -196,7 +197,7 @@ public class NewDatabaseEngine {
 	
 	
 	public static ArrayList<String> runQuery(String check_term_line, int numResults) throws IOException{
-		File database = new File("data/database.txt");
+		File database = new File(database_name);
 		if (!database.exists()) {
 			return new ArrayList<String>();
 		}
@@ -240,6 +241,13 @@ public class NewDatabaseEngine {
 		String[] x = line.substring(0, line.length()-1).split("[\\[\\]]");
 		String topic = x[0];
 		List<String> terms = Arrays.asList(x[1].split("\\s*,\\s*"));
+		
+//		for(String ter : terms){
+//			docs_with_term.put(ter, (docs_with_term.get(ter) == null) ? 0 : docs_with_term.get(ter)+1);
+//		}
+//		total_docs++;
+		
+		
 		for(String g : terms){
 			for(String k : check_terms){
 				if (g.equals(k)){

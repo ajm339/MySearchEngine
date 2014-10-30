@@ -15,6 +15,7 @@ import org.apache.lucene.analysis.util.CharArraySet;
 import org.apache.lucene.util.Version;
 
 public class EvaluateQueries {
+	
 	public static double meanmeanaverageaverageprecisionprecision = 0;
 	
 	public static void main(String[] args) throws IOException {
