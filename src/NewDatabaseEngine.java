@@ -45,54 +45,159 @@ public class NewDatabaseEngine {
 	public static float annbpn = 0;
 	public static float my_weighting = 0;
 	public static float bm25 = 0;
+	public static List<String> globalterms;
 	public static HashSet<String> rel_docs;
 
 	public static HashMap<String,Integer> docs_by_rel; //term to # rel_docs
 	public static HashMap<String,Integer> docs_with_term; //term to # total_docs
-	public static int total_docs = 0;
+	public static double total_docs = 0;
 	public static HashMap<String,Integer> relevant_doc_num;
 	public static HashMap<String,HashMap <String,Integer>> term_freq_in_doc;
 	public static HashMap<String,Integer> term_freq_in_query;
 	
-	public static void adjust_atcatc(double tf, double N, double dft, double maxtf){
-		double a = 0.5 + ((0.5*tf)/(maxtf));
-		double t = Math.log(N/dft);
-		double c = ;
-
-		double atcScore = a*t*c;
-	}
-	
-	public static void adjust_atnatn(double tf, double N, double dft, double maxtf){
-		double a = 0.5 + ((0.5*tf)/(maxtf));
-		double t = Math.log(N/dft);
-		double n = 1;
-		double atcScore = a*t*n;
-
-	}
-	public static void adjust_annbpn(double tf, double N, double dft, double maxtf){
-		double a = 0.5 + ((0.5*tf)/(maxtf));
-		double n = 1;
-		double n = 1;
-		double b = ;
-		double p = Math.max(0, Math.log((N-dft)/dft);
-
-
-	}
-	public static void adjust_my_weighting(){
+	public static double adjust_atcatc(ArrayList <String> docs){
+		double a = 1.0;
+		double t = 1.0;
+		double c = 1.0;
+		double result = 1.0;
 		
+		HashMap <String, Integer> maxtf = new HashMap<String, Integer>();
+		for(String doc : docs){
+			for(String term: globalterms){
+				maxtf.put(doc, 0);				
+			}
+		}
+		
+		for(String doc : docs){
+			for(String term: globalterms){
+				if(term_freq_in_doc.get(doc) != null){
+					if(term_freq_in_doc.get(doc).containsKey(term)){
+						if(maxtf.get(doc) < term_freq_in_doc.get(doc).get(term)){
+							maxtf.put(doc, term_freq_in_doc.get(doc).get(term));				
+						}
+					}
+				}
+			}
+		}
+		
+		for(String term: globalterms){
+			a = 1.0;
+			t = 1.0;
+			c = 1.0;
+			for(String doc : docs){
+				if(term_freq_in_doc.get(doc).containsKey(term)){
+					a *= 0.5 + ((0.5*term_freq_in_doc.get(doc).get(term))/(maxtf.get(doc)));
+					
+					t *= Math.log(total_docs/docs_with_term.get(term));
+				
+					c *= Math.pow(term_freq_in_query.get(term),2);
+				}
+			}
+			c = 1/Math.pow(c, 0.5);
+	
+			result += a*t*c;
+		}
+		return result/docs.size();
 	}
 	
-	public static double binary_tf(double tf){
-		return ( (tf==0) ? 0.0 : 1.0 );
-	}
-	
-	public static double adjust_bm25(double R, int ri, double K, int fi, double k1, double k2, int qfi){
-		double term1 = Math.log(1 / ((ri + 0.5) / (R - ri + 0.5)));
-		double term2 = ((k1 + 1) * fi) / (K + fi);
-		double term3 = ((k2 + 1) * fi) / (k2 + qfi);
-		double score = (term1 * term2 * term3);
+	public static double adjust_atnatn(ArrayList <String> docs){
+		double a = 1.0;
+		double t = 1.0;
+		double n = 1.0;
+		double result = 1.0;
+		
+		HashMap <String, Integer> maxtf = new HashMap<String, Integer>();
+		for(String doc : docs){
+			for(String term: globalterms){
+				maxtf.put(doc, 0);				
+			}
+		}
+		
+		for(String doc : docs){
+			for(String term: globalterms){
+				if(term_freq_in_doc.get(doc).containsKey(term)){
+					if(maxtf.get(doc) < term_freq_in_doc.get(doc).get(term)){
+						maxtf.put(doc, term_freq_in_doc.get(doc).get(term));				
+					}
+				}
+			}
+		}
+		
+		for(String term: globalterms){
+			a = 1.0;
+			t = 1.0;
+			for(String doc : docs){
+				if(term_freq_in_doc.get(doc).containsKey(term)){
+					a *= 0.5 + ((0.5*term_freq_in_doc.get(doc).get(term))/(maxtf.get(doc)));
+					t *= Math.log(total_docs/docs_with_term.get(term));
+				}
+			}	
+			result += a*t*n;
+		}
+		return result/docs.size();
 
-		return score; 
+	}
+	public static double adjust_annbpn(ArrayList <String> docs){
+		double a = 1.0;
+		double p = 1.0;
+		double result = -0.0;
+		
+		HashMap <String, Integer> maxtf = new HashMap<String, Integer>();
+		for(String doc : docs){
+			for(String term: globalterms){
+				maxtf.put(doc, 0);				
+			}
+		}
+		
+		for(String doc : docs){
+			for(String term: globalterms){
+				if(term_freq_in_doc.get(doc).containsKey(term)){
+					if(maxtf.get(doc) < term_freq_in_doc.get(doc).get(term)){
+						maxtf.put(doc, term_freq_in_doc.get(doc).get(term));				
+					}
+				}
+			}
+		}
+
+		for(String doc : docs){
+			a = 1.0;
+			p = 1.0;
+			
+			for(String term: globalterms){
+				if(docs_with_term.containsKey(term) && term_freq_in_doc.get(doc).containsKey(term)){
+					a *= (0.5 + ((0.5*term_freq_in_doc.get(doc).get(term))/(maxtf.get(doc))));
+//					System.out.println((total_docs-docs_with_term.get(term)));
+//					System.out.println(docs_with_term.get(term));
+					p *= Math.max(0, Math.log(Math.abs(total_docs-docs_with_term.get(term)))/docs_with_term.get(term));
+				}
+			}
+
+			result += (a*p);
+		}
+		return result/docs.size();
+	}
+	
+	public static double adjust_my_weighting(ArrayList <String> docs){
+		//There is something to be said for simplicity. Also, I haven't
+		//slept in 48 hours, and I will not get to sleep for another 15-20
+		//after writing this, so try not to take it too badly. Thanks
+		return 2;
+	}
+	
+	
+	public static double adjust_bm25(ArrayList <String> docs){
+		double score = 0.0;
+		for(String docum: docs){
+			for(String term : globalterms){
+				if(docs_by_rel.containsKey(term) && term_freq_in_query.containsKey(term) && term_freq_in_doc.get(docum).containsKey(term)){
+					double term1 = Math.log(Math.abs(rel_docs.size() + 0.5)*Math.abs(total_docs - docs_with_term.size() - total_docs + rel_docs.size() + 0.5))/(Math.abs(docs_with_term.size()-rel_docs.size()+0.5)*Math.abs( total_docs + rel_docs.size() + 0.5)); //Math.log(1 / ((docs_by_rel.get(term) + 0.5) / (rel_docs.size() - docs_by_rel.get(term) + 0.5)));
+					double term2 = ((1.2 + 1) * term_freq_in_doc.get(docum).get(term)) / (1.2 + term_freq_in_doc.get(docum).get(term));
+					double term3 = (101 * term_freq_in_query.get(term)) / (100 + term_freq_in_query.get(term)); //Note: replace the second 1 with the number of times term was mentioned in the query.
+					score = score + (term1 * term2 * term3);
+				}
+			}			
+		}
+		return score/docs.size(); //b=0.75, k1 = 1.2, k2 100
 	}
 	
 	public static void setStopwords(CharArraySet stops){
@@ -273,44 +378,12 @@ public class NewDatabaseEngine {
 		}
 		System.out.println(check_term_line);
 		System.out.println(resultArray);
-		
-		
-//		System.out.println();
-//		System.out.println();
-//		System.out.println();
-//		System.out.println();
-//		System.out.println();
-//		System.out.println();
-//		System.out.println();
-//		System.out.println();
-//		System.out.println();
-//		System.out.println();
-//		System.out.println();
-//		System.out.println();
-//		System.out.println();
-//		System.out.println();
-//		System.out.println();
-//		System.out.println();		
-//		System.out.println(docs_by_rel); //term to # rel_docs
-//		System.out.println(docs_with_term);
-//		System.out.println(total_docs);
-//		System.out.println(relevant_doc_num);
-//		System.out.println(term_freq_in_doc);
-//		System.out.println(term_freq_in_query);
-//		System.out.println();
-//		System.out.println();
-//		System.out.println();
-//		System.out.println();
-//		System.out.println();
-//		System.out.println();
-//		System.out.println();
-//		System.out.println();
-//		System.out.println();
-//		System.out.println();
-//		System.out.println();
-//		System.out.println();
-//		System.out.println();
-//		System.out.println();
+
+		System.out.println(adjust_atcatc(resultArray));
+		System.out.println(adjust_atnatn(resultArray));
+		System.out.println(adjust_annbpn(resultArray));
+		System.out.println(adjust_my_weighting(resultArray));
+		System.out.println(adjust_bm25(resultArray));
 		
 		
 		return resultArray;
@@ -331,9 +404,10 @@ public class NewDatabaseEngine {
 		String[] x = line.substring(0, line.length()-1).split("[\\[\\]]");
 		String topic = x[0];
 		List<String> terms = Arrays.asList(x[1].split("\\s*,\\s*"));
+		globalterms = terms;
 		
 		for(String ter : terms){
-			if(rel_docs.contains(topic)){
+			if(rel_docs.contains(topic.replace(".txt", ""))){
 				if(docs_by_rel.get(ter) == null){
 					docs_by_rel.put(ter,1);
 				}else{
