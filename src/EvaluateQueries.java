@@ -14,7 +14,7 @@ import org.apache.lucene.analysis.util.CharArraySet;
 import org.apache.lucene.util.Version;
 
 public class EvaluateQueries {
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		String cacmDocsDir = "data/cacm"; // directory containing CACM documents
 		String medDocsDir = "data/med"; // directory containing MED documents
 		
@@ -126,12 +126,42 @@ public class EvaluateQueries {
 		return matches / results.size();
 	}
 
+//	private static double evaluate(String indexDir, String docsDir,
+//			String queryFile, String answerFile, int numResults,
+//			CharArraySet stopwords) {
+//
+//		// Build Index
+//		IndexFiles.buildIndex(indexDir, docsDir, stopwords);
+//
+//		// load queries and answer
+//		Map<Integer, String> queries = loadQueries(queryFile);
+//		Map<Integer, HashSet<String>> queryAnswers = loadAnswers(answerFile);
+//
+//		// Search and evaluate
+//		double sum = 0;
+//		for (Integer i : queries.keySet()) {
+//			if (i == 1) {
+//				List<String> results = SearchFiles.searchQuery(indexDir, queries
+//						.get(i), numResults, stopwords);
+//				sum += precision(queryAnswers.get(i), results);
+//				System.out.printf("\nTopic %d  ", i);
+//				System.out.print (results);
+//				System.out.println();
+//				System.out.printf("%f",MeanAveragePrecision(queryAnswers.get(i), results));
+//				System.out.println();
+//			}
+//			
+//		}
+//			
+//		return sum / queries.size();
+//	}
+	
 	private static double evaluate(String indexDir, String docsDir,
 			String queryFile, String answerFile, int numResults,
-			CharArraySet stopwords) {
+			CharArraySet stopwords) throws IOException {
 
 		// Build Index
-		IndexFiles.buildIndex(indexDir, docsDir, stopwords);
+		NewDatabaseEngine.buildIndex(indexDir, docsDir, stopwords);
 
 		// load queries and answer
 		Map<Integer, String> queries = loadQueries(queryFile);
@@ -141,14 +171,13 @@ public class EvaluateQueries {
 		double sum = 0;
 		for (Integer i : queries.keySet()) {
 			if (i == 1) {
-				List<String> results = SearchFiles.searchQuery(indexDir, queries
-						.get(i), numResults, stopwords);
-				sum += precision(queryAnswers.get(i), results);
-				System.out.printf("\nTopic %d  ", i);
-				System.out.print (results);
-				System.out.println();
-				System.out.printf("%f",MeanAveragePrecision(queryAnswers.get(i), results));
-				System.out.println();
+				NewDatabaseEngine.runQuery(queries.get(i), numResults);
+//				sum += precision(queryAnswers.get(i), results);
+//				System.out.printf("\nTopic %d  ", i);
+//				System.out.print (results);
+//				System.out.println();
+//				System.out.printf("%f",MeanAveragePrecision(queryAnswers.get(i), results));
+//				System.out.println();
 			}
 			
 		}

@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.List;
@@ -27,33 +28,38 @@ import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.index.IndexWriterConfig.OpenMode;
+import org.apache.lucene.store.Directory;
+import org.apache.lucene.store.FSDirectory;
 
 
 public class NewDatabaseEngine {
 	public static String data = "";
 	public static CharArraySet stopwords;
+	public File database;
 	
 	public static void setStopwords(CharArraySet stops){
 		stopwords = stops;
 	}
 	
-	public void createdb(String thingy){
-		try{
-			File database = new File("database.txt");
-			if (!database.exists()) {
-				database.createNewFile();
-			}
-			FileWriter filewriter = new FileWriter(database.getAbsoluteFile());
-			BufferedWriter writer = new BufferedWriter(filewriter);
-			writer.write(thingy);
-			writer.close();
-		}catch (IOException e) {
-			e.printStackTrace();
+	public static void buildIndex(String indexPath, String docsPath, CharArraySet stops) {
+		// Check whether docsPath is valid
+		if (docsPath == null || docsPath.isEmpty()) {
+			System.err.println("Document directory cannot be null");
+			System.exit(1);
 		}
+
+		// Check whether the directory is readable
+		final File docDir = new File(docsPath);
+		if (!docDir.exists() || !docDir.canRead()) {
+			System.out.println("Document directory '" +docDir.getAbsolutePath()+ "' does not exist or is not readable, please check the path");
+			System.exit(1);
+		}
+		stopwords = stops;
 		
-	}
-	
-	public void IndexFiles(){		
+		indexDocs(docDir);
+		createdb(data);
 	}
 	
 	static void indexDocs(File file) {
@@ -86,7 +92,7 @@ public class NewDatabaseEngine {
 //					System.out.println(stringBuffer.toString());
 					
 					List<String> tokens = AnalyzeThings(new BufferedReader(new InputStreamReader(fis)));
-					data += file.getAbsolutePath() + tokens.toString() + "\n";
+					data += file.getName() + tokens.toString() + "\n";
 					
 
 				} catch (IOException e) {
@@ -103,10 +109,10 @@ public class NewDatabaseEngine {
 	}	
 	
 	public static List<String> tokenizeString(String str) throws IOException{
-		Analyzer analyzer = new StandardAnalyzer(new CharArraySet(10,true));		
+		Analyzer analyzer = new StandardAnalyzer(stopwords);		
 		List<String> result = new ArrayList<String>();
         TokenStream stream  = analyzer.tokenStream(null, new StringReader(str));
-		
+		stream.reset();
         try {
             while(stream.incrementToken()) {
                 result.add(stream.getAttribute(CharTermAttribute.class).toString());
@@ -115,6 +121,7 @@ public class NewDatabaseEngine {
         catch(IOException e) {
             // not thrown b/c we're using a string reader...
         }
+        stream.close();
 		return result;
 	}
 	
@@ -140,11 +147,30 @@ public class NewDatabaseEngine {
 		return result;
 	}
 	
-	public void runQuery(String check_term_line) throws IOException{
-		File database = new File("database.txt");
+	public static void createdb(String thingy){
+		try{
+			File database = new File("data/database.txt");
+			if (!database.exists()) {
+				database.createNewFile();
+			}
+			database.setWritable(true);
+			FileWriter filewriter = new FileWriter(database.getAbsoluteFile());
+			BufferedWriter writer = new BufferedWriter(filewriter);
+			writer.write(thingy);
+			writer.close();
+		}catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+	}
+	
+	
+	public static void runQuery(String check_term_line, int numResults) throws IOException{
+		File database = new File("data/database.txt");
 		if (!database.exists()) {
 			return;
 		}
+		database.setReadable(true);
 		FileInputStream fis = null;
 		try {
 			fis = new FileInputStream(database);
@@ -161,11 +187,10 @@ public class NewDatabaseEngine {
 		Collections.sort(stringArray, new DocListComparator());
 		
 		ArrayList <String> resultArray = new ArrayList <String>();
-		
-		for( ArrayList<String> x : stringArray.subList(0,100)){
+		for( ArrayList<String> x : stringArray.subList(0,numResults)){
 			resultArray.add(x.get(0));
 		}
-		
+		System.out.println(check_term_line);
 		System.out.println(resultArray);
 		
 	}
@@ -179,14 +204,15 @@ public class NewDatabaseEngine {
 	     }
 	 }
 	
-	public ArrayList <String> check_line(String line, List<String> check_terms){
+	public static ArrayList <String> check_line(String line, List<String> check_terms){
 		Integer res = 0;
-		String[] x = line.split("[");
+		String[] x = line.substring(0, line.length()-1).split("[\\[\\]]");
 		String topic = x[0];
-		List<String> terms = Arrays.asList(x[1].substring(0, x[1].length()-1).split("\\s*,\\s*"));
+		List<String> terms = Arrays.asList(x[1].split("\\s*,\\s*"));
 		for(String g : terms){
 			for(String k : check_terms){
 				if (g == k){
+					System.out.println("+++++++++++++++++++++++++++++++++++++");
 					res++;
 				}
 			}
@@ -194,6 +220,11 @@ public class NewDatabaseEngine {
 		ArrayList<String> result = new ArrayList<String>();
 		result.add(topic);
 		result.add(res.toString());
+		
+		System.out.println("::::::::::::::::::::::::::::::::::::::::::::::::::::::::");
+		System.out.println(topic);
+		System.out.println(res.toString());
+		
 		return result;
 	}
 
