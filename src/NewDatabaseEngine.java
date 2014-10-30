@@ -14,6 +14,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map.Entry;
 import java.util.List;
 
@@ -44,12 +45,13 @@ public class NewDatabaseEngine {
 	public static float annbpn = 0;
 	public static float my_weighting = 0;
 	public static float bm25 = 0;
+	public static HashSet<String> rel_docs;
 
 	public static HashMap<String,Integer> docs_by_rel; //term to # rel_docs
 	public static HashMap<String,Integer> docs_with_term; //term to # total_docs
 	public static int total_docs = 0;
 	public static HashMap<String,Integer> relevant_doc_num;
-	public static HashMap<String,Integer> term_freq_in_doc;
+	public static HashMap<String,HashMap <String,Integer>> term_freq_in_doc;
 	public static HashMap<String,Integer> term_freq_in_query;
 	
 	public static void adjust_atcatc(){
@@ -73,6 +75,21 @@ public class NewDatabaseEngine {
 	}
 	
 	public static void buildIndex(String indexDir, String docsPath, CharArraySet stops) {
+		data = "";
+		atcatc = 0;
+		atnatn = 0;
+		annbpn = 0;
+		my_weighting = 0;
+		bm25 = 0;
+
+		docs_by_rel = new HashMap<String,Integer>(); //term to # rel_docs
+		docs_with_term = new HashMap<String,Integer>(); //term to # total_docs
+		total_docs = 0;
+		relevant_doc_num = new HashMap<String,Integer>();
+		term_freq_in_doc = new HashMap<String,HashMap <String,Integer>> ();
+		term_freq_in_query = new HashMap<String,Integer>();
+		
+		
 		// Check whether docsPath is valid
 		if (docsPath == null || docsPath.isEmpty()) {
 			System.err.println("Document directory cannot be null");
@@ -90,6 +107,10 @@ public class NewDatabaseEngine {
 		indexDocs(docDir);
 		createdb(data,docsPath.split("/")[1]);
 		data = "";
+		
+		
+		
+		
 	}
 	
 	static void indexDocs(File file) {
@@ -196,7 +217,8 @@ public class NewDatabaseEngine {
 	}
 	
 	
-	public static ArrayList<String> runQuery(String check_term_line, int numResults) throws IOException{
+	public static ArrayList<String> runQuery(String check_term_line, int numResults, HashSet<String> answers) throws IOException{
+		rel_docs = answers;
 		File database = new File(database_name);
 		if (!database.exists()) {
 			return new ArrayList<String>();
@@ -208,6 +230,7 @@ public class NewDatabaseEngine {
 		} catch (FileNotFoundException e) {
 			System.out.println(" caught a " + e.getClass() + "\n with message: " + e.getMessage());
 		}
+		
 		BufferedReader buff = new BufferedReader(new InputStreamReader(fis));
 		ArrayList<ArrayList <String>> stringArray = new ArrayList<ArrayList <String>>();
 		String line = null;
@@ -215,6 +238,8 @@ public class NewDatabaseEngine {
 		while((line = buff.readLine())!=null){
 		   stringArray.add(check_line(line,check_terms));
 		}
+		
+		
 		Collections.sort(stringArray, new DocListComparator());
 		
 		ArrayList <String> resultArray = new ArrayList <String>();
@@ -223,6 +248,46 @@ public class NewDatabaseEngine {
 		}
 		System.out.println(check_term_line);
 		System.out.println(resultArray);
+		
+		
+//		System.out.println();
+//		System.out.println();
+//		System.out.println();
+//		System.out.println();
+//		System.out.println();
+//		System.out.println();
+//		System.out.println();
+//		System.out.println();
+//		System.out.println();
+//		System.out.println();
+//		System.out.println();
+//		System.out.println();
+//		System.out.println();
+//		System.out.println();
+//		System.out.println();
+//		System.out.println();		
+//		System.out.println(docs_by_rel); //term to # rel_docs
+//		System.out.println(docs_with_term);
+//		System.out.println(total_docs);
+//		System.out.println(relevant_doc_num);
+//		System.out.println(term_freq_in_doc);
+//		System.out.println(term_freq_in_query);
+//		System.out.println();
+//		System.out.println();
+//		System.out.println();
+//		System.out.println();
+//		System.out.println();
+//		System.out.println();
+//		System.out.println();
+//		System.out.println();
+//		System.out.println();
+//		System.out.println();
+//		System.out.println();
+//		System.out.println();
+//		System.out.println();
+//		System.out.println();
+		
+		
 		return resultArray;
 		
 	}
@@ -242,10 +307,36 @@ public class NewDatabaseEngine {
 		String topic = x[0];
 		List<String> terms = Arrays.asList(x[1].split("\\s*,\\s*"));
 		
-//		for(String ter : terms){
-//			docs_with_term.put(ter, (docs_with_term.get(ter) == null) ? 0 : docs_with_term.get(ter)+1);
-//		}
-//		total_docs++;
+		for(String ter : terms){
+			if(rel_docs.contains(topic)){
+				if(docs_by_rel.get(ter) == null){
+					docs_by_rel.put(ter,1);
+				}else{
+					docs_by_rel.put(ter,docs_by_rel.get(ter)+1);
+				}
+			}
+			docs_with_term.put(ter, (docs_with_term.get(ter) == null) ? 0 : docs_with_term.get(ter)+1);
+			term_freq_in_query.put(ter, (term_freq_in_query.get(ter) == null) ? 0 : term_freq_in_query.get(ter)+1);
+			String k = ter;
+//			System.out.println(topic);
+			if(term_freq_in_doc.get(topic) == null){
+				term_freq_in_doc.put(topic, new HashMap <String,Integer>());
+				term_freq_in_doc.get(topic).put(k, 0);
+			}else if(term_freq_in_doc.get(topic).get(ter) == null){
+				term_freq_in_doc.get(topic).put(ter, 1);
+			}else{
+				term_freq_in_doc.get(topic).put(ter, term_freq_in_doc.get(topic).get(ter) + 1);	
+			}
+			term_freq_in_query.put(ter, term_freq_in_query.get(ter) + 1);
+			
+			relevant_doc_num.put(ter, rel_docs.size());
+						
+		}
+		total_docs++;
+		
+		
+		
+		
 		
 		
 		for(String g : terms){
