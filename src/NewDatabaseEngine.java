@@ -54,20 +54,45 @@ public class NewDatabaseEngine {
 	public static HashMap<String,HashMap <String,Integer>> term_freq_in_doc;
 	public static HashMap<String,Integer> term_freq_in_query;
 	
-	public static void adjust_atcatc(){
-		
+	public static void adjust_atcatc(double tf, double N, double dft, double maxtf){
+		double a = 0.5 + ((0.5*tf)/(maxtf));
+		double t = Math.log(N/dft);
+		double c = ;
+
+		double atcScore = a*t*c;
 	}
-	public static void adjust_atnatn(){
-		
+	
+	public static void adjust_atnatn(double tf, double N, double dft, double maxtf){
+		double a = 0.5 + ((0.5*tf)/(maxtf));
+		double t = Math.log(N/dft);
+		double n = 1;
+		double atcScore = a*t*n;
+
 	}
-	public static void adjust_annbpn(){
-		
+	public static void adjust_annbpn(double tf, double N, double dft, double maxtf){
+		double a = 0.5 + ((0.5*tf)/(maxtf));
+		double n = 1;
+		double n = 1;
+		double b = ;
+		double p = Math.max(0, Math.log((N-dft)/dft);
+
+
 	}
 	public static void adjust_my_weighting(){
 		
 	}
-	public static void adjust_bm25(){
-		
+	
+	public static double binary_tf(double tf){
+		return ( (tf==0) ? 0.0 : 1.0 );
+	}
+	
+	public static double adjust_bm25(double R, int ri, double K, int fi, double k1, double k2, int qfi){
+		double term1 = Math.log(1 / ((ri + 0.5) / (R - ri + 0.5)));
+		double term2 = ((k1 + 1) * fi) / (K + fi);
+		double term3 = ((k2 + 1) * fi) / (k2 + qfi);
+		double score = (term1 * term2 * term3);
+
+		return score; 
 	}
 	
 	public static void setStopwords(CharArraySet stops){
