@@ -38,6 +38,36 @@ public class NewDatabaseEngine {
 	public static String data = "";
 	public static CharArraySet stopwords;
 	public File database;
+	public static float atcatc = 0;
+	public static float atnatn = 0;
+	public static float annbpn = 0;
+	public static float my_weighting = 0;
+	public static float bm25 = 0;
+
+	public static HashMap<String,Integer> docs_by_rel; //term to # rel_docs
+	public static HashMap<String,Integer> docs_with_term; //term to # total_docs
+	public static int total_docs = 0;
+	public static int relevant_doc_num;
+	public static HashMap<String,Integer> term_freq_in_doc;
+	public static HashMap<String,Integer> term_freq_in_query;
+	
+	
+	public static void adjust_atcatc(){
+		
+	}
+	public static void adjust_atnatn(){
+		
+	}
+	public static void adjust_annbpn(){
+		
+	}
+	public static void adjust_my_weighting(){
+		
+	}
+	public static void adjust_bm25(){
+		
+	}
+	
 	
 	public static void setStopwords(CharArraySet stops){
 		stopwords = stops;
@@ -165,10 +195,10 @@ public class NewDatabaseEngine {
 	}
 	
 	
-	public static void runQuery(String check_term_line, int numResults) throws IOException{
+	public static ArrayList<String> runQuery(String check_term_line, int numResults) throws IOException{
 		File database = new File("data/database.txt");
 		if (!database.exists()) {
-			return;
+			return new ArrayList<String>();
 		}
 		database.setReadable(true);
 		FileInputStream fis = null;
@@ -192,6 +222,7 @@ public class NewDatabaseEngine {
 		}
 		System.out.println(check_term_line);
 		System.out.println(resultArray);
+		return resultArray;
 		
 	}
 	

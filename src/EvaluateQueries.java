@@ -3,6 +3,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -14,6 +15,8 @@ import org.apache.lucene.analysis.util.CharArraySet;
 import org.apache.lucene.util.Version;
 
 public class EvaluateQueries {
+	public static double meanmeanaverageaverageprecisionprecision = 0;
+	
 	public static void main(String[] args) throws IOException {
 		String cacmDocsDir = "data/cacm"; // directory containing CACM documents
 		String medDocsDir = "data/med"; // directory containing MED documents
@@ -39,6 +42,7 @@ public class EvaluateQueries {
 		
 		System.out.println(evaluate(medIndexDir, medDocsDir, medQueryFile,
 				medAnswerFile, medNumResults, stopwords));
+		
 
 	}
 	
@@ -118,11 +122,12 @@ public class EvaluateQueries {
 		double total = 0.0;
 		for (String result : results) {
 			total++;
-			if (answers.contains(result))
+			if (answers.contains(result.replaceAll(".txt",""))){
 				accurate++;
 				matches += accurate/total;
+			}
 		}
-
+		meanmeanaverageaverageprecisionprecision += matches/results.size();
 		return matches / results.size();
 	}
 
@@ -170,19 +175,16 @@ public class EvaluateQueries {
 		// Search and evaluate
 		double sum = 0;
 		for (Integer i : queries.keySet()) {
-			if (i == 1) {
-				NewDatabaseEngine.runQuery(queries.get(i), numResults);
+				ArrayList<String> results = NewDatabaseEngine.runQuery(queries.get(i), numResults);
 //				sum += precision(queryAnswers.get(i), results);
 //				System.out.printf("\nTopic %d  ", i);
-//				System.out.print (results);
-//				System.out.println();
-//				System.out.printf("%f",MeanAveragePrecision(queryAnswers.get(i), results));
-//				System.out.println();
-			}
+				System.out.printf("%f",MeanAveragePrecision(queryAnswers.get(i), results));
+				System.out.println();
+				System.out.println();
 			
 		}
 			
-		return sum / queries.size();
+		return meanmeanaverageaverageprecisionprecision / queries.size();
 	}
 	
 	
