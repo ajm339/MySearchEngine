@@ -167,7 +167,7 @@ public class EvaluateQueries {
 			CharArraySet stopwords) throws IOException {
 
 		// Build Index
-		NewDatabaseEngine.buildIndex(indexDir, docsDir, stopwords);
+		NewSearchEngine.buildIndex(indexDir, docsDir, stopwords);
 
 		// load queries and answer
 		Map<Integer, String> queries = loadQueries(queryFile);
@@ -176,7 +176,7 @@ public class EvaluateQueries {
 		// Search and evaluate
 		double sum = 0;
 		for (Integer i : queries.keySet()) {
-				ArrayList<String> results = NewDatabaseEngine.runQuery(queries.get(i), numResults, queryAnswers.get(i));
+				ArrayList<String> results = NewSearchEngine.runQuery(queries.get(i), numResults, docsDir, queryAnswers.get(i));
 //				sum += precision(queryAnswers.get(i), results);
 //				System.out.printf("\nTopic %d  ", i);
 				System.out.printf("%f",MeanAveragePrecision(queryAnswers.get(i), results));
@@ -186,6 +186,7 @@ public class EvaluateQueries {
 		}
 			
 		return meanmeanaverageaverageprecisionprecision / queries.size();
+//		return 0.0;
 	}
 	
 	

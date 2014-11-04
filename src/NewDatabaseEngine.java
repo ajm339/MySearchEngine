@@ -262,19 +262,21 @@ public class NewDatabaseEngine {
 				}
 
 				try {
-					
-//					BufferedReader buff = new BufferedReader(new InputStreamReader(fis));
-//					StringBuffer stringBuffer = new StringBuffer();
-//					String line = null;
-//					while((line =buff.readLine())!=null){
-//					   stringBuffer.append(line).append("\n");
-//					}
-//					String[] words = stringBuffer.toString().split("\\s+");
-//					System.out.println(stringBuffer.toString());
-					
 					List<String> tokens = AnalyzeThings(new BufferedReader(new InputStreamReader(fis)));
-					data += file.getName() + tokens.toString() + "\n";
 					
+					HashMap <String, Integer> freq = new HashMap<String,Integer>();
+					for(String g : tokens){
+						if(freq.containsKey(g)){
+							freq.replace(g, freq.get(g) + 1);
+						}else{
+							freq.put(g, 1);
+						}
+					}
+					String res = file.getName().split(".")[0] + "|";
+					for(String r : freq.keySet()){
+						res += r + "," + freq.get(r).toString() + "|";
+					}
+					data += file.getName() + tokens.toString() + "\n";
 
 				} catch (IOException e) {
 					System.out.println(" caught a " + e.getClass() + "\n with message: " + e.getMessage());
@@ -290,7 +292,7 @@ public class NewDatabaseEngine {
 	}	
 	
 	public static List<String> tokenizeString(String str) throws IOException{
-		Analyzer analyzer = new StandardAnalyzer(stopwords);		
+		Analyzer analyzer = new MyAnalyzer(stopwords);		
 		List<String> result = new ArrayList<String>();
         TokenStream stream  = analyzer.tokenStream(null, new StringReader(str));
 		stream.reset();
