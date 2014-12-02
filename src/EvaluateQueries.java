@@ -38,17 +38,15 @@ public class EvaluateQueries {
 	    CharArraySet stopwords = new CharArraySet(0, false);
 		System.out.println(evaluate(cacmIndexDir, cacmDocsDir, cacmQueryFile,
 				cacmAnswerFile, cacmNumResults, stopwords));
+//		
+//		System.out.println("\n");
 		
-		System.out.println("\n");
-		
-		System.out.println(evaluate(medIndexDir, medDocsDir, medQueryFile,
-				medAnswerFile, medNumResults, stopwords));
+//		System.out.println(evaluate(medIndexDir, medDocsDir, medQueryFile,
+//				medAnswerFile, medNumResults, stopwords));
 		
 
 	}
 	
-
-
 	private static Map<Integer, String> loadQueries(String filename) {
 		HashMap<Integer, String> queryIdMap = new HashMap<Integer, String>();
 		BufferedReader in = null;
@@ -131,36 +129,6 @@ public class EvaluateQueries {
 		meanmeanaverageaverageprecisionprecision += matches/results.size();
 		return matches / results.size();
 	}
-
-//	private static double evaluate(String indexDir, String docsDir,
-//			String queryFile, String answerFile, int numResults,
-//			CharArraySet stopwords) {
-//
-//		// Build Index
-//		IndexFiles.buildIndex(indexDir, docsDir, stopwords);
-//
-//		// load queries and answer
-//		Map<Integer, String> queries = loadQueries(queryFile);
-//		Map<Integer, HashSet<String>> queryAnswers = loadAnswers(answerFile);
-//
-//		// Search and evaluate
-//		double sum = 0;
-//		for (Integer i : queries.keySet()) {
-//			if (i == 1) {
-//				List<String> results = SearchFiles.searchQuery(indexDir, queries
-//						.get(i), numResults, stopwords);
-//				sum += precision(queryAnswers.get(i), results);
-//				System.out.printf("\nTopic %d  ", i);
-//				System.out.print (results);
-//				System.out.println();
-//				System.out.printf("%f",MeanAveragePrecision(queryAnswers.get(i), results));
-//				System.out.println();
-//			}
-//			
-//		}
-//			
-//		return sum / queries.size();
-//	}
 	
 	private static double evaluate(String indexDir, String docsDir,
 			String queryFile, String answerFile, int numResults,
@@ -180,13 +148,12 @@ public class EvaluateQueries {
 //				sum += precision(queryAnswers.get(i), results);
 //				System.out.printf("\nTopic %d  ", i);
 				System.out.printf("%f",MeanAveragePrecision(queryAnswers.get(i), results));
-				System.out.println();
-				System.out.println();
+//				System.out.println();
+//				System.out.println();
 			
 		}
 			
-		return meanmeanaverageaverageprecisionprecision / queries.size();
-//		return 0.0;
+		return 0.0;
 	}
 	
 	

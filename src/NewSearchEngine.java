@@ -36,14 +36,10 @@ import org.apache.lucene.store.FSDirectory;
 
 public class NewSearchEngine {
 	static String data = "";
-	Integer atcatc = 0;
-	Integer atnatn = 0;
-	Integer annbpn = 0;
-	Integer my_weighting = 0;
-	Integer bm25 = 0;
+
 	static CharArraySet stopwords;
 
-	Integer total_docs = 0;
+	
 	HashMap<String,Integer>docs_by_rel = new HashMap<String,Integer>(); //term to # rel_docs
 	HashMap<String,Integer>docs_with_term = new HashMap<String,Integer>(); //term to # total_docs
 	HashMap<String,Integer>relevant_doc_num = new HashMap<String,Integer>();
@@ -71,8 +67,6 @@ public class NewSearchEngine {
 		}
 		stopwords = stops;
 		indexDocs(docDir);
-		System.out.println("{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{");
-		System.out.println(data);
 		createdb(data,docsPath.split("/")[1]);
 		
 	}
@@ -118,16 +112,16 @@ public class NewSearchEngine {
 			List<String> tokenized = tokenizeString(search_term);
 			HashMap<String, HashMap<String,Integer>> db = reassemble(docsPath.split("/")[1]);
 			ArrayList<String> arrlist = evaluate_db(db,tokenized);
-			System.out.print("BM25: ");
-			System.out.println(bm25(arrlist, answers, db, tokenized));
+//			System.out.print("BM25: ");
+//			System.out.println(bm25(arrlist, answers, db, tokenized));
 			System.out.print("ATCATC: ");
-			System.out.println(atcatc(arrlist, answers, db, tokenized));
-			System.out.print("ATNATN: ");
-			System.out.println(atnatn(arrlist, answers, db, tokenized));
-			System.out.print("ANNBPN: ");
-			System.out.println(annbpn(arrlist, answers, db, tokenized));
-			System.out.print("THE ALEXV6 (SUPER AWESOME) WEIGHTING ALGORITHM: ");
-			System.out.println(my_weighting(arrlist, answers, db, tokenized));
+			System.out.println(atcatc2(db, tokenized));
+//			System.out.print("ATNATN: ");
+//			System.out.println(atnatn(arrlist, answers, db, tokenized));
+//			System.out.print("ANNBPN: ");
+//			System.out.println(annbpn(arrlist, answers, db, tokenized));
+//			System.out.print("THE ALEXV6 (SUPER AWESOME) WEIGHTING ALGORITHM: ");
+//			System.out.println(my_weighting(arrlist, answers, db, tokenized));
 			return arrlist;
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -223,6 +217,91 @@ public class NewSearchEngine {
 	}
 	//b = 0.75 k1 = 1.2 k2 = 100.0
 	
+	public static double atcatc2(HashMap<String, HashMap<String,Integer>> db, List<String> tokenized){
+		double total_sum = 0.0;
+		
+		double N = (double)db.size(); //total number of docs needed for idf (t)	
+		
+		HashMap<String, Integer> term_doc_freq = new HashMap<String, Integer>(); //number of documents of each term occurs in
+		
+		/*loop counts how many docs a term occurs 
+		 * in and stores in term_doc_freq HashMap.  
+		 * needed for idf (t)
+		 */
+		for(String term : tokenized){
+			int n = 0; //total number of docs a term occurs in
+			for(String str : db.keySet()){
+				if(db.get(str).get(term) != null){
+					n += 1;
+				}
+			}
+			term_doc_freq.put(term,  n);
+		}
+		
+		/*loop cycles through each document, 
+		 * and counts the number of times a term in the query 
+		 * occurs, and stores it in the HashMap term_freq.  also calculates the maximum 
+		 * occurring term in each docment needed for tf (a)
+		 */
+		for(String str : db.keySet()){
+			HashMap<String, Double> vector = new HashMap<String, Double>();
+			HashMap<String,Integer>term_freq = new HashMap<String,Integer>();
+			double max_frequency = 0.0;
+			
+			//loops through the query tf in specific doc
+			for(String term : tokenized){
+				//System.out.println("1 " + term_freq.get(term));
+				if(db.get(str).containsKey(term)){
+					int term_count = db.get(str).get(term);
+					term_freq.put(term, term_count);
+					max_frequency = Math.max(max_frequency, term_count);
+					//System.out.println("2 " + term_freq.get(term));
+				} else {
+					term_freq.put(term, 0);
+					//System.out.println("3 " + term_freq.get(term));
+				}
+				
+				//System.out.println("1234 " + term_freq.get(term));
+				
+				//double a = (term_freq.get(term) == 0 ? 0.0 : 0.5 + (term_freq.get(term)/max_frequency) ); //tf
+				double a;
+				if (term_freq.get(term) == 0 ) {
+					a = 0;
+				} else {
+					a = (double) term_freq.get(term)/max_frequency;
+				}
+				double t = (term_doc_freq.get(term)==0 ? 0.0 : Math.log(N/term_doc_freq.get(term))); //idf
+				
+				vector.put(term,  a*t); //store tf*idf for each term in query
+			}
+			
+			
+		
+		
+		}
+
+		return total_sum;
+	}
+	
+	public static HashMap normalized(HashMap<String, Integer> vector){
+		/*
+		 * loop to create normalization factor c
+		 * */
+		double c = 0.0; //normalization factor
+		double denom_before_sqrt = 0.0;
+		for(String itr : vector.keySet()){
+			denom_before_sqrt += Math.pow(vector.get(itr), 2);
+		}
+
+		c = 1.0/Math.pow(denom_before_sqrt, 0.5);
+		
+		HashMap<String, Double> normalized_vector = new HashMap<String, Double>();
+		
+		for(String itr : vector.keySet()){
+			normalized_vector.put(itr, vector.get(itr)*c);
+		}
+		return vector;
+	}
 	
 	public static double atcatc(ArrayList<String> actual, HashSet<String> answers, HashMap<String, HashMap<String,Integer>> db, List<String> tokenized){
 		double total_sum = 0.0;
@@ -274,6 +353,7 @@ public class NewSearchEngine {
 			double c = 0.0;
 			if(term_freq.containsKey(term) && term_freq.get(term) != 0 && max_term_freq.get(term) != 0 && ni != 0){
 				a = 0.5 + (term_freq.get(term)/(max_term_freq.get(term)));
+				System.out.println("a: " + a);
 				t = Math.log(n/ni);
 				c = Math.pow(term_freq.get(term),2);
 			}
