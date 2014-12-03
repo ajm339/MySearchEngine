@@ -36,13 +36,12 @@ public class EvaluateQueries {
 
 	    // CharArraySet stopwords = new CharArraySet(Version.LUCENE_44,0,false);
 	    CharArraySet stopwords = new CharArraySet(0, false);
-		System.out.println(evaluate(cacmIndexDir, cacmDocsDir, cacmQueryFile,
-				cacmAnswerFile, cacmNumResults, stopwords));
-//		
-//		System.out.println("\n");
+		evaluate(cacmIndexDir, cacmDocsDir, cacmQueryFile,
+				cacmAnswerFile, cacmNumResults, stopwords);
+
 		
-//		System.out.println(evaluate(medIndexDir, medDocsDir, medQueryFile,
-//				medAnswerFile, medNumResults, stopwords));
+//		evaluate(medIndexDir, medDocsDir, medQueryFile,
+//				medAnswerFile, medNumResults, stopwords);
 		
 
 	}
@@ -115,7 +114,7 @@ public class EvaluateQueries {
 		return matches / results.size();
 	}
 	
-	private static double MeanAveragePrecision(HashSet<String> answers, List<String> results) {
+	private static double averagePrecision(HashSet<String> answers, List<String> results) {
 		double matches = 0.0;
 		double accurate = 0.0;
 		double total = 0.0;
@@ -126,11 +125,10 @@ public class EvaluateQueries {
 				matches += accurate/total;
 			}
 		}
-		meanmeanaverageaverageprecisionprecision += matches/results.size();
 		return matches / results.size();
 	}
 	
-	private static double evaluate(String indexDir, String docsDir,
+	private static void evaluate(String indexDir, String docsDir,
 			String queryFile, String answerFile, int numResults,
 			CharArraySet stopwords) throws IOException {
 
@@ -145,15 +143,16 @@ public class EvaluateQueries {
 		double sum = 0;
 		for (Integer i : queries.keySet()) {
 				ArrayList<String> results = NewSearchEngine.runQuery(queries.get(i), numResults, docsDir, queryAnswers.get(i));
-//				sum += precision(queryAnswers.get(i), results);
-//				System.out.printf("\nTopic %d  ", i);
-				System.out.printf("%f",MeanAveragePrecision(queryAnswers.get(i), results));
-//				System.out.println();
-//				System.out.println();
-			
+				double averagePrecision = averagePrecision(queryAnswers.get(i), results);
+				sum += averagePrecision;
+
+				System.out.printf("\nTopic %d  \n", i);
+				System.out.println("Results: " + results);
+				System.out.println("Answers: " + queryAnswers.get(i));
+				System.out.println(averagePrecision);
+				System.out.println();
 		}
-			
-		return 0.0;
+		System.out.println("MAP: " + sum/queries.size());
 	}
 	
 	

@@ -6,33 +6,20 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map.Entry;
 import java.util.List;
-
-import javax.swing.text.Document;
+import java.util.PriorityQueue;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.analysis.util.CharArraySet;
-import org.apache.lucene.document.Field;
-import org.apache.lucene.document.StringField;
-import org.apache.lucene.document.TextField;
-import org.apache.lucene.index.IndexWriter;
-import org.apache.lucene.index.IndexWriterConfig;
-import org.apache.lucene.index.IndexWriterConfig.OpenMode;
-import org.apache.lucene.store.Directory;
-import org.apache.lucene.store.FSDirectory;
 
 public class NewSearchEngine {
 	static String data = "";
@@ -109,13 +96,13 @@ public class NewSearchEngine {
 	
 	public static ArrayList<String> runQuery(String search_term, Integer num_results, String docsPath, HashSet<String> answers){
 		try {
-			List<String> tokenized = tokenizeString(search_term);
+			HashMap<String, Integer> tokenized = tokenizeString(search_term);
 			HashMap<String, HashMap<String,Integer>> db = reassemble(docsPath.split("/")[1]);
 			ArrayList<String> arrlist = evaluate_db(db,tokenized);
 //			System.out.print("BM25: ");
 //			System.out.println(bm25(arrlist, answers, db, tokenized));
-			System.out.print("ATCATC: ");
-			System.out.println(atcatc2(db, tokenized));
+//			System.out.print("ATCATC: ");
+			atcatc2(db, tokenized);
 //			System.out.print("ATNATN: ");
 //			System.out.println(atnatn(arrlist, answers, db, tokenized));
 //			System.out.print("ANNBPN: ");
@@ -131,13 +118,13 @@ public class NewSearchEngine {
 	}
 	
 	
-	public static ArrayList<String> evaluate_db(HashMap<String, HashMap<String,Integer>> db, List<String> tokenized){
+	public static ArrayList<String> evaluate_db(HashMap<String, HashMap<String,Integer>> db, HashMap<String,Integer> tokenized){
 		HashMap<String,Integer> temp_map = new HashMap<String,Integer>();
 		ArrayList<String> k;
 
 		for(String x : db.keySet()){
 			int j = 0;
-			for(String h : tokenized){
+			for(String h : tokenized.keySet()){
 				if(db.get(x).get(h) != null){
 					j += db.get(x).get(h);
 				}
@@ -217,91 +204,187 @@ public class NewSearchEngine {
 	}
 	//b = 0.75 k1 = 1.2 k2 = 100.0
 	
-	public static double atcatc2(HashMap<String, HashMap<String,Integer>> db, List<String> tokenized){
-		double total_sum = 0.0;
-		
+	public static HashMap<String, Double> calculate_idf(HashMap<String, HashMap<String,Integer>> db, HashMap<String, Integer> tokenized){
 		double N = (double)db.size(); //total number of docs needed for idf (t)	
 		
 		HashMap<String, Integer> term_doc_freq = new HashMap<String, Integer>(); //number of documents of each term occurs in
-		
+		HashMap<String, Double> idf = new HashMap<String, Double>();
 		/*loop counts how many docs a term occurs 
 		 * in and stores in term_doc_freq HashMap.  
-		 * needed for idf (t)
+		 * calculate idf (t)
 		 */
-		for(String term : tokenized){
+		
 			int n = 0; //total number of docs a term occurs in
 			for(String str : db.keySet()){
-				if(db.get(str).get(term) != null){
-					n += 1;
+				for(String term: db.get(str).keySet()){
+					if(term_doc_freq.containsKey(term)){
+						term_doc_freq.put(term, term_doc_freq.get(term)+1);
+					} else {
+						term_doc_freq.put(term, 1);
+					}
 				}
 			}
-			term_doc_freq.put(term,  n);
-		}
+			
+			for(String itr : term_doc_freq.keySet()){
+				idf.put(itr, Math.log(N/term_doc_freq.get(itr))); //idf
+			}
 		
+		return idf;
+	}
+	
+	public static HashMap<String, Double> calculate_doc_tf(HashMap<String,Integer> doc_tf){
 		/*loop cycles through each document, 
 		 * and counts the number of times a term in the query 
 		 * occurs, and stores it in the HashMap term_freq.  also calculates the maximum 
 		 * occurring term in each docment needed for tf (a)
 		 */
-		for(String str : db.keySet()){
-			HashMap<String, Double> vector = new HashMap<String, Double>();
-			HashMap<String,Integer>term_freq = new HashMap<String,Integer>();
-			double max_frequency = 0.0;
+		HashMap<String, Double> document_tf_vector = new HashMap<String, Double>();
+		
 			
-			//loops through the query tf in specific doc
-			for(String term : tokenized){
-				//System.out.println("1 " + term_freq.get(term));
-				if(db.get(str).containsKey(term)){
-					int term_count = db.get(str).get(term);
-					term_freq.put(term, term_count);
-					max_frequency = Math.max(max_frequency, term_count);
-					//System.out.println("2 " + term_freq.get(term));
-				} else {
-					term_freq.put(term, 0);
-					//System.out.println("3 " + term_freq.get(term));
-				}
-				
-				//System.out.println("1234 " + term_freq.get(term));
-				
-				//double a = (term_freq.get(term) == 0 ? 0.0 : 0.5 + (term_freq.get(term)/max_frequency) ); //tf
-				double a;
-				if (term_freq.get(term) == 0 ) {
-					a = 0;
-				} else {
-					a = (double) term_freq.get(term)/max_frequency;
-				}
-				double t = (term_doc_freq.get(term)==0 ? 0.0 : Math.log(N/term_doc_freq.get(term))); //idf
-				
-				vector.put(term,  a*t); //store tf*idf for each term in query
+			int max_occuring_term = 0;
+			//get max occuring term frequency
+			for(String str : doc_tf.keySet()){
+				max_occuring_term = Math.max(max_occuring_term, doc_tf.get(str));
 			}
 			
-			
-		
-		
-		}
+			for(String str : doc_tf.keySet()){
+				int value = doc_tf.get(str);
+				double final_value = 0.5 + (0.5)*(value/max_occuring_term);
+				document_tf_vector.put(str, final_value);
+			}
 
-		return total_sum;
+		return document_tf_vector;
 	}
 	
-	public static HashMap normalized(HashMap<String, Integer> vector){
+	public static HashMap<String, Double> calculate_query_tf(HashMap<String,Integer> query_tf){
+		int max_occuring_term = 0;
+		
+		for(String term : query_tf.keySet()){
+			max_occuring_term = Math.max(max_occuring_term, query_tf.get(term));
+		}
+		
+		HashMap<String,Double> calculated_query_tf = new HashMap<String,Double>();
+		
+		for(String term : query_tf.keySet()){
+			int value = query_tf.get(term);
+			double final_value = 0.5 + (0.5)*(value/max_occuring_term);
+			calculated_query_tf.put(term, final_value);
+		}
+		return calculated_query_tf;
+	}
+	
+	public static HashMap normalized(HashMap<String, Double> document_tfidf){
 		/*
 		 * loop to create normalization factor c
 		 * */
 		double c = 0.0; //normalization factor
 		double denom_before_sqrt = 0.0;
-		for(String itr : vector.keySet()){
-			denom_before_sqrt += Math.pow(vector.get(itr), 2);
+		for(String itr : document_tfidf.keySet()){
+			denom_before_sqrt += Math.pow(document_tfidf.get(itr), 2);
 		}
 
 		c = 1.0/Math.pow(denom_before_sqrt, 0.5);
 		
 		HashMap<String, Double> normalized_vector = new HashMap<String, Double>();
 		
-		for(String itr : vector.keySet()){
-			normalized_vector.put(itr, vector.get(itr)*c);
+		for(String itr : document_tfidf.keySet()){
+			normalized_vector.put(itr, document_tfidf.get(itr)*c);
 		}
-		return vector;
+		return document_tfidf;
 	}
+	
+	public static ArrayList<String> getTop(HashMap<String, Double>rankings, int n){
+		PriorityQueue<DocumentVector> topDocs = new PriorityQueue<DocumentVector>(n);
+
+		// for each key
+		for(String document: rankings.keySet()){
+			DocumentVector v = new DocumentVector(document, rankings.get(document));
+			if(topDocs.size()<n){
+				topDocs.add(v);
+			} else if (topDocs.peek().compareTo(v) == -1){
+				topDocs.poll();
+				topDocs.add(v);
+			}
+			
+		}
+		
+		Object[] results = topDocs.toArray();
+		Arrays.sort(results, Collections.reverseOrder());
+		
+		ArrayList<String> final_results = new ArrayList<String>();
+		
+		for(int i=0; i<results.length; i++){
+			DocumentVector v = (DocumentVector) results[i];
+//			System.out.println("Document: " + v.key + " ==== Value: " + v.value);
+			final_results.add(v.key);
+		}
+		return final_results;
+	}
+	
+	public static ArrayList<String> atcatc2(HashMap<String, HashMap<String,Integer>> db, HashMap<String, Integer> tokenized){
+		double total_sum = 0.0;
+		
+		/*
+		 * Calculate idf of all terms in docs
+		 * Then calculate tf vector for all terms in all docs
+		 * Then multiple tf*idf for all terms in all docs
+		 * Then normalize the tf*idf values of all terms in all docs into db_document_tifidf
+		 */
+		HashMap<String, Double> idf = calculate_idf(db, tokenized);
+		
+		HashMap<String, HashMap<String,Double>> db_document_tfidf_normalized = new HashMap<String, HashMap<String,Double>>();
+		
+		for(String document : db.keySet()){
+			HashMap<String, Double> document_tf_vector = calculate_doc_tf(db.get(document));
+			
+			HashMap<String,Double> document_tfidf = new HashMap<String,Double>();
+			
+			for(String term: document_tf_vector.keySet()){
+				double value = document_tf_vector.get(term) * idf.get(term);
+				document_tfidf.put(term, value);
+			}
+			
+			db_document_tfidf_normalized.put(document, normalized(document_tfidf));
+		}
+		
+		/* Use previously calculated idf of all terms in docs
+		 * Then calculate tf vector for all terms in query (tokenized variable which already has counts)
+		 * Then multiple tf*idf for all terms in query
+		 * Then normalize the tf*idf values of all terms in the query into query_tfidf
+		 */
+		HashMap<String, Double> query_tf_vector = calculate_query_tf(tokenized);
+		HashMap<String, Double> query_tfidf = new HashMap<String, Double>();
+		for (String term : tokenized.keySet()){
+			if(idf.containsKey(term)){
+				double query_value = query_tf_vector.get(term);
+				double idf_value = idf.get(term);
+				query_tfidf.put(term, query_value*idf_value);
+			} else {
+				query_tfidf.put(term, 0.0);
+			}
+		}
+		
+		HashMap<String, Double> query_tfidf_normalized = normalized(query_tfidf);
+		
+		/*
+		 * Take the dot product of db_document_tfidf_normalized and query_tfidf_normalized
+		 */
+		HashMap<String, Double> dot_product_docs = new HashMap<String, Double>();
+		for(String document : db_document_tfidf_normalized.keySet()){	
+			HashMap<String, Double> current_doc = db_document_tfidf_normalized.get(document);
+			double running_total = 0.0;
+			for (String term : query_tfidf_normalized.keySet()){
+				double value = query_tfidf_normalized.get(term) * (current_doc.containsKey(term) ? current_doc.get(term) : 0.0); 
+				running_total += value;		
+			}
+			dot_product_docs.put(document, running_total);
+		}
+		
+		//Collections.sort(dot_product_docs);
+		
+		return getTop(dot_product_docs, 7);
+	}
+	
 	
 	public static double atcatc(ArrayList<String> actual, HashSet<String> answers, HashMap<String, HashMap<String,Integer>> db, List<String> tokenized){
 		double total_sum = 0.0;
@@ -491,14 +574,14 @@ public class NewSearchEngine {
 	
 	
 	
-	public static List<String> AnalyzeThings(BufferedReader buff) throws IOException{
+	public static HashMap<String, Integer> AnalyzeThings(BufferedReader buff) throws IOException{
 		StringBuffer stringBuffer = new StringBuffer();
 		String line = null;
 		while((line = buff.readLine())!=null){
 		   stringBuffer.append(line).append("\n");
 		}
 				
-		List<String> result = tokenizeString(stringBuffer.toString());
+		HashMap<String, Integer> result = tokenizeString(stringBuffer.toString());
 		return result;
 	}
 
@@ -520,9 +603,9 @@ public class NewSearchEngine {
 		
 	}
 	
-	public static String encode_db_line(List<String> tokens, File file){
+	public static String encode_db_line(HashMap<String,Integer> tokens, File file){
 		HashMap <String, Integer> freq = new HashMap<String,Integer>();
-		for(String g : tokens){
+		for(String g : tokens.keySet()){
 			if(freq.containsKey(g)){
 				freq.replace(g, freq.get(g) + 1);
 			}else{
@@ -581,14 +664,19 @@ public class NewSearchEngine {
 		return results;
 	}
 	
-	public static List<String> tokenizeString(String str) throws IOException{
+	public static HashMap<String, Integer> tokenizeString(String str) throws IOException{
 		Analyzer analyzer = new MyAnalyzer(stopwords);		
-		List<String> result = new ArrayList<String>();
+		HashMap<String, Integer> result = new HashMap<String, Integer>();
         TokenStream stream  = analyzer.tokenStream(null, new StringReader(str));
 		stream.reset();
         try {
             while(stream.incrementToken()) {
-                result.add(stream.getAttribute(CharTermAttribute.class).toString());
+            	String term = stream.getAttribute(CharTermAttribute.class).toString();
+            	if (result.containsKey(term)){
+            		result.put(term, result.get(term) + 1);
+            	} else {
+            		result.put(term,  1);
+            	}
             }
         }
         catch(IOException e) {
