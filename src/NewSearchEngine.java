@@ -94,7 +94,7 @@ public class NewSearchEngine {
 	
 	////////////////////////////////////SEARCH//////////////////////////////////////
 	
-	public static ArrayList<String> runQuery(String search_term, Integer num_results, String docsPath, HashSet<String> answers){
+	public static ArrayList<String> runQuery(String search_term, int num_results, String docsPath, HashSet<String> answers){
 		try {
 			HashMap<String, Integer> tokenized = tokenizeString(search_term);
 			HashMap<String, HashMap<String,Integer>> db = reassemble(docsPath.split("/")[1]);
@@ -102,7 +102,7 @@ public class NewSearchEngine {
 //			System.out.print("BM25: ");
 //			System.out.println(bm25(arrlist, answers, db, tokenized));
 //			System.out.print("ATCATC: ");
-			atcatc2(db, tokenized);
+			atcatc2(db, tokenized, num_results);
 //			System.out.print("ATNATN: ");
 //			System.out.println(atnatn(arrlist, answers, db, tokenized));
 //			System.out.print("ANNBPN: ");
@@ -321,7 +321,7 @@ public class NewSearchEngine {
 		return final_results;
 	}
 	
-	public static ArrayList<String> atcatc2(HashMap<String, HashMap<String,Integer>> db, HashMap<String, Integer> tokenized){
+	public static ArrayList<String> atcatc2(HashMap<String, HashMap<String,Integer>> db, HashMap<String, Integer> tokenized, int num_results){
 		double total_sum = 0.0;
 		
 		/*
@@ -382,7 +382,7 @@ public class NewSearchEngine {
 		
 		//Collections.sort(dot_product_docs);
 		
-		return getTop(dot_product_docs, 7);
+		return getTop(dot_product_docs, num_results);
 	}
 	
 	
