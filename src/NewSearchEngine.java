@@ -44,10 +44,10 @@ public class NewSearchEngine{
 
 	////////////////////////////////////INDEXING//////////////////////////////////////
 
-	public static String Rocchio (double alpha, double beta,HashMap<String,Integer> query_tokens_map, ArrayList<String> relevant_docs_array){
+	public static String Rocchio (double omicron, double alpha, double beta, HashMap<String,Integer> query_tokens_map, ArrayList<String> relevant_docs_array){
 		query_tokens = new HashMap<String,Double>();
 		for(String k : query_tokens_map.keySet()){
-			query_tokens.put(k, query_tokens_map.get(k).doubleValue());
+			query_tokens.put(k, omicron*query_tokens_map.get(k).doubleValue());
 		}
 		ArrayList<HashMap<String,Integer>> relevant_docs = new ArrayList<HashMap<String,Integer>>();
 		ArrayList<HashMap<String,Integer>> nonrelevant_docs = new ArrayList<HashMap<String,Integer>>();

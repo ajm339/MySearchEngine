@@ -151,9 +151,9 @@ public class EvaluateQueries {
 
 				System.out.printf("\n Topic %d  \n", i);
 				System.out.println("Results: " + results);
-				
+
 //				finarr[i-1] = NewSearchEngine.Rocchio(4.0,8.0,tokenized, results);
-				
+
 				System.out.println("Answers: " + queryAnswers.get(i));
 				System.out.println(averagePrecision);
 //				System.out.println();
