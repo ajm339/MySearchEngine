@@ -31,7 +31,7 @@ public class EvaluateQueries {
 		String medQueryFile = "data/med_processed.query";    // MED query file
 		String medAnswerFile = "data/med_processed.rel";   // MED relevance judgements file
 		
-		int cacmNumResults = 100;
+		int cacmNumResults = 7;
 		int medNumResults = 100;
 
 	    // CharArraySet stopwords = new CharArraySet(Version.LUCENE_44,0,false);
@@ -151,6 +151,9 @@ public class EvaluateQueries {
 				System.out.println("Answers: " + queryAnswers.get(i));
 				System.out.println(averagePrecision);
 				System.out.println();
+				
+				
+				ArrayList<ArrayList<String>> clustering_results = CompleteClustering.calculateCluster(20, results);
 		}
 		System.out.println("MAP: " + sum/queries.size());
 	}

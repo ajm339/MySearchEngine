@@ -25,6 +25,8 @@ public class NewSearchEngine {
 	static String data = "";
 
 	static CharArraySet stopwords;
+	
+	
 
 	
 	HashMap<String,Integer>docs_by_rel = new HashMap<String,Integer>(); //term to # rel_docs
@@ -33,6 +35,8 @@ public class NewSearchEngine {
 	HashMap<String,HashMap <String,Integer>> term_freq_in_doc = new HashMap<String,HashMap <String,Integer>> ();
 	HashMap<String,Integer>term_freq_in_query = new HashMap<String,Integer>();
 	
+	static HashMap<String, HashMap<String,Double>> db_document_tfidf_normalized = new HashMap<String, HashMap<String,Double>>();
+	static HashMap<String, HashMap<String,Integer>> db;
 	
 
 	////////////////////////////////////INDEXING//////////////////////////////////////
@@ -97,7 +101,7 @@ public class NewSearchEngine {
 	public static ArrayList<String> runQuery(String search_term, int num_results, String docsPath, HashSet<String> answers){
 		try {
 			HashMap<String, Integer> tokenized = tokenizeString(search_term);
-			HashMap<String, HashMap<String,Integer>> db = reassemble(docsPath.split("/")[1]);
+			db = reassemble(docsPath.split("/")[1]);
 			ArrayList<String> arrlist = evaluate_db(db,tokenized);
 //			System.out.print("BM25: ");
 //			System.out.println(bm25(arrlist, answers, db, tokenized));
@@ -332,7 +336,6 @@ public class NewSearchEngine {
 		 */
 		HashMap<String, Double> idf = calculate_idf(db, tokenized);
 		
-		HashMap<String, HashMap<String,Double>> db_document_tfidf_normalized = new HashMap<String, HashMap<String,Double>>();
 		
 		for(String document : db.keySet()){
 			HashMap<String, Double> document_tf_vector = calculate_doc_tf(db.get(document));
@@ -369,7 +372,7 @@ public class NewSearchEngine {
 		/*
 		 * Take the dot product of db_document_tfidf_normalized and query_tfidf_normalized
 		 */
-		HashMap<String, Double> dot_product_docs = new HashMap<String, Double>();
+		HashMap<String, Double> dot_product_docs = new HashMap<String, Double>(); //HashMap of document*query tfidf dot products
 		for(String document : db_document_tfidf_normalized.keySet()){	
 			HashMap<String, Double> current_doc = db_document_tfidf_normalized.get(document);
 			double running_total = 0.0;
@@ -380,7 +383,19 @@ public class NewSearchEngine {
 			dot_product_docs.put(document, running_total);
 		}
 		
-		//Collections.sort(dot_product_docs);
+		/*
+		 * Make the single atc score of each document available
+		 */
+//		HashMap<String, Double> document_atc_score = new HashMap<String, Double>();
+//		for(String document : db_document_tfidf_normalized.keySet()){	
+//			HashMap<String, Double> current_doc = db_document_tfidf_normalized.get(document);
+//			double running_total = 0.0;
+//			for (String term : current_doc.keySet()){
+//				double value = current_doc.get(term); 
+//				running_total += value;		
+//			}
+//		}
+//		
 		
 		return getTop(dot_product_docs, num_results);
 	}
