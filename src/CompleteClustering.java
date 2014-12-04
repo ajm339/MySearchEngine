@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -6,6 +7,80 @@ import java.util.HashSet;
 public class CompleteClustering {
 	HashMap<String, HashMap<String,Double>> docs_atc_scores = NewSearchEngine.db_document_tfidf_normalized;
 	static HashMap<String, HashMap<String, Integer>> db_document_vectors = NewSearchEngine.db;
+	
+	public static ArrayList<String>analyze(int K, ArrayList<String> results){
+		
+		ArrayList<String> sub_results = new ArrayList<String>();
+		for(int i =0; i<30; i++){
+			sub_results.add(results.get(i));
+		}
+		ArrayList<ArrayList<String>> clustering_results = CompleteClustering.calculateCluster(K, sub_results);
+		ArrayList<String> highest_clustering_results = getHighestRanked(sub_results, clustering_results);
+		
+		return highest_clustering_results;
+	}
+	
+	/*
+	 * Calculate the average rankings of clusters
+	 */
+	public static ArrayList<String> sortAverage(ArrayList<ArrayList<String>> cluster) {
+		ArrayList<String> new_cluster_list = new ArrayList<String>(); 
+		for (ArrayList<String> list: cluster) {
+			new_cluster_list.addAll(list);
+		}
+		Collections.sort(new_cluster_list);
+		Collections.reverse(new_cluster_list);
+		
+		return new_cluster_list;
+	}
+	
+	
+	/*
+	 * Method to reorder results based on clustering and results list
+	 */
+	public static ArrayList<String> getHighestRanked(ArrayList<String>results, ArrayList<ArrayList<String>>cluster_list){
+		ArrayList<String> new_results = new ArrayList<String>();
+			
+			//loop through the atc.atc results until reordered by clusters
+			for(String document:results){
+				
+				//move through to next document if current one has already been added.
+				if(new_results.contains(document)){
+					continue;
+				}
+				
+				//iterate through each set of lists(clusters)
+				int n = 0;
+				while (n < cluster_list.size()){
+					boolean isFound = false;
+					//iterate through a single list(cluster)
+					int length = cluster_list.get(n).size();
+					for(int i=0; i<length; i++){
+						ArrayList<String> list = cluster_list.get(n);
+						//if the document from results is found, add all the documents to the cluster and break the loop 
+						if(document.equals(list.get(i))){
+							new_results.addAll(list);
+							isFound = true;
+							break;
+						}
+					}
+					//break while loop if document is already found to move to next document to be searched
+					if(isFound){
+						break;
+					}
+					n++;
+				} //end while
+				
+				if(new_results.size()>=30){
+					break;
+				}
+				
+			}
+		
+		return new_results;
+	}
+	
+	
 	
 	/*
 	 * Calculates the vector distance for 2 documents

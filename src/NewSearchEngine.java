@@ -303,7 +303,7 @@ public class NewSearchEngine{
 			
 			for(String str : doc_tf.keySet()){
 				int value = doc_tf.get(str);
-				double final_value = 0.5 + (0.5)*(value/max_occuring_term);
+				double final_value = 0.5 + (0.5)*((double) value/ (double) max_occuring_term);
 				document_tf_vector.put(str, final_value);
 			}
 
@@ -330,7 +330,7 @@ public class NewSearchEngine{
 	public static HashMap normalized(HashMap<String, Double> document_tfidf){
 		/*
 		 * loop to create normalization factor c
-		 * */
+		 */
 		double c = 0.0; //normalization factor
 		double denom_before_sqrt = 0.0;
 		for(String itr : document_tfidf.keySet()){
@@ -407,6 +407,7 @@ public class NewSearchEngine{
 		 */
 		HashMap<String, Double> query_tf_vector = calculate_query_tf(tokenized);
 		HashMap<String, Double> query_tfidf = new HashMap<String, Double>();
+		
 		for (String term : tokenized.keySet()){
 			if(idf.containsKey(term)){
 				double query_value = query_tf_vector.get(term);
@@ -416,6 +417,15 @@ public class NewSearchEngine{
 				query_tfidf.put(term, 0.0);
 			}
 		}
+
+
+//		System.out.println("******************************");
+//		System.out.print(tokenized);
+//		System.out.println("&&&&&&&&&&&&&&&&&&&&&&&&&&");
+//		System.out.print(idf);
+//		System.out.println("=======================");
+//		System.out.print(query_tfidf);
+
 		
 		HashMap<String, Double> query_tfidf_normalized = normalized(query_tfidf);
 		

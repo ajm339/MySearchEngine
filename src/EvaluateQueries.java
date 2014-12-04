@@ -146,22 +146,23 @@ public class EvaluateQueries {
 		for (Integer i : queries.keySet()) {
 				ArrayList<String> results = NewSearchEngine.runQuery(queries.get(i), numResults, docsDir, queryAnswers.get(i));
 				HashMap<String, Integer> tokenized = NewSearchEngine.tokenizeString(queries.get(i));
-				double averagePrecision = averagePrecision(queryAnswers.get(i), results);
+				
+				ArrayList<String> clustering_results = CompleteClustering.analyze(20, results);
+				
+				double averagePrecision = averagePrecision(queryAnswers.get(i), clustering_results);
 				sum += averagePrecision;
 
-				System.out.printf("\n Topic %d  \n", i);
-				System.out.println("Results: " + results);
+//				System.out.printf("\n Topic %d  \n", i);
+//				System.out.println("Results: " + results);
 
 //				finarr[i-1] = NewSearchEngine.Rocchio(4.0,8.0,tokenized, results);
 
-				System.out.println("Answers: " + queryAnswers.get(i));
-				System.out.println(averagePrecision);
-//				System.out.println();
+//				System.out.println("Answers: " + queryAnswers.get(i));
+//				System.out.println(averagePrecision);
+
 				
-				
-//				ArrayList<ArrayList<String>> clustering_results = CompleteClustering.calculateCluster(20, results);
 		}
-		System.out.println("MAP: " + sum);
+		System.out.println("MAP: " + sum/queries.size());
 //		for(int x = 0; x < finarr.length; x++){
 //			System.out.println(Integer.toString(x+1)+ ": " + finarr[x]);
 //		}
