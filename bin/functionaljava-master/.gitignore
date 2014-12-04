@@ -1,0 +1,14 @@
+target
+out
+lib_managed
+*.iws
+.deps
+.idea
+.gradle
+build
+*.iml
+.settings
+.classpath
+.project
+.DS_Store
+

@@ -1,0 +1,110 @@
+
+defaultTasks 'build'
+
+ext {
+}
+
+if (JavaVersion.current().isJava8Compatible()) {
+    allprojects {
+        tasks.withType(Javadoc) {
+            options.addStringOption('Xdoclint:none', '-quiet')
+        }
+    }
+}
+
+allprojects {
+
+	ext {
+        isSnapshot = true
+        fjBaseVersion = "4.2-beta-2"
+
+        snapshotAppendix = "-SNAPSHOT"
+		fjVersion = fjBaseVersion + (isSnapshot ? snapshotAppendix : "")
+        fjConsumeVersion = "4.1"
+
+        signModule = false
+
+        projectTitle = "Functional Java"
+		projectName = "functionaljava"
+        pomProjectName = projectTitle
+        pomOrganisation = projectTitle
+        projectDescription = "Functional Java is an open source library that supports closures for the Java programming language"
+        projectUrl = "http://functionaljava.org/"
+        scmUrl = "git://github.com/functionaljava/functionaljava.git"
+        scmGitFile = "scm:git@github.com:functionaljava/functionaljava.git"
+
+        sonatypeBaseUrl = "https://oss.sonatype.org"
+        sonatypeSnapshotUrl = "$sonatypeBaseUrl/content/repositories/snapshots/"
+        sonatypeRepositoryUrl = "$sonatypeBaseUrl/content/groups/public"
+        sonatypeReleaseUrl = "$sonatypeBaseUrl/service/local/staging/deploy/maven2/"
+        sonatypeUploadUrl = isSnapshot ? sonatypeSnapshotUrl : sonatypeReleaseUrl
+        primaryEmail = "functionaljava@googlegroups.com"
+
+        dependencyJunit = "junit:junit:4.11"
+    }
+
+	version = fjVersion
+	group = "org.functionaljava"
+}
+
+subprojects {
+
+    defaultTasks "build"
+
+    buildscript {
+        repositories {
+            mavenCentral()
+        }
+
+        dependencies {
+            classpath 'me.tatarka:gradle-retrolambda:1.3.1'
+        }
+    }
+
+    repositories {
+        mavenCentral()
+		maven {
+			url sonatypeRepositoryUrl
+		}
+
+	}
+
+    apply from: "$rootDir/lib.gradle"
+    apply plugin: "maven"
+    apply plugin: "java"
+    apply plugin: "signing"
+
+    sourceCompatibility = "1.8"
+
+    task javadocJar(type: Jar, dependsOn: "javadoc") {
+        classifier = 'javadoc'
+        from "build/docs/javadoc"
+    }
+
+    task sourcesJar(type: Jar) {
+        from sourceSets.main.allSource
+        classifier = 'sources'
+    }
+
+    artifacts {
+        archives jar
+        archives javadocJar
+        archives sourcesJar
+    }
+
+    jar {
+        version project.fjVersion
+        manifest {
+            attributes 'Signature-Version': project.fjVersion
+        }
+    }
+
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.0'
+}
+
+task env << {
+	println System.getenv()
+}
