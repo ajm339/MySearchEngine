@@ -28,6 +28,8 @@ public class NewSearchEngine{
 	static String data = "";
 
 	static CharArraySet stopwords;
+	
+	
 
 	
 	HashMap<String,Integer>docs_by_rel = new HashMap<String,Integer>(); //term to # rel_docs
@@ -35,6 +37,7 @@ public class NewSearchEngine{
 	HashMap<String,Integer>relevant_doc_num = new HashMap<String,Integer>();
 	HashMap<String,HashMap <String,Integer>> term_freq_in_doc = new HashMap<String,HashMap <String,Integer>> ();
 	HashMap<String,Integer>term_freq_in_query = new HashMap<String,Integer>();
+
 	static HashMap<String, HashMap<String,Double>> db_document_tfidf_normalized = new HashMap<String, HashMap<String,Double>>();
 	static HashMap<String, HashMap<String,Integer>> db;
 	static HashMap<String,Double> query_tokens;
@@ -383,7 +386,6 @@ public class NewSearchEngine{
 		 */
 		HashMap<String, Double> idf = calculate_idf(db, tokenized);
 		
-		HashMap<String, HashMap<String,Double>> db_document_tfidf_normalized = new HashMap<String, HashMap<String,Double>>();
 		
 		for(String document : db.keySet()){
 			HashMap<String, Double> document_tf_vector = calculate_doc_tf(db.get(document));
@@ -421,7 +423,7 @@ public class NewSearchEngine{
 		/*
 		 * Take the dot product of db_document_tfidf_normalized and query_tfidf_normalized
 		 */
-		HashMap<String, Double> dot_product_docs = new HashMap<String, Double>();
+		HashMap<String, Double> dot_product_docs = new HashMap<String, Double>(); //HashMap of document*query tfidf dot products
 		for(String document : db_document_tfidf_normalized.keySet()){	
 			HashMap<String, Double> current_doc = db_document_tfidf_normalized.get(document);
 			double running_total = 0.0;
