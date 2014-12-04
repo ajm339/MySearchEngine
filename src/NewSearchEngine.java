@@ -321,7 +321,7 @@ public class NewSearchEngine{
 		
 		for(String term : query_tf.keySet()){
 			int value = query_tf.get(term);
-			double final_value = 0.5 + (0.5)*(value/max_occuring_term);
+			double final_value = 0.5 + (0.5)*value/max_occuring_term;
 			calculated_query_tf.put(term, final_value);
 		}
 		return calculated_query_tf;
@@ -344,7 +344,7 @@ public class NewSearchEngine{
 		for(String itr : document_tfidf.keySet()){
 			normalized_vector.put(itr, document_tfidf.get(itr)*c);
 		}
-		return document_tfidf;
+		return normalized_vector;
 	}
 	
 	public static ArrayList<String> getTop(HashMap<String, Double>rankings, int n){
@@ -406,6 +406,7 @@ public class NewSearchEngine{
 		 * Then normalize the tf*idf values of all terms in the query into query_tfidf
 		 */
 		HashMap<String, Double> query_tf_vector = calculate_query_tf(tokenized);
+
 		HashMap<String, Double> query_tfidf = new HashMap<String, Double>();
 		
 		for (String term : tokenized.keySet()){
@@ -436,27 +437,17 @@ public class NewSearchEngine{
 		for(String document : db_document_tfidf_normalized.keySet()){	
 			HashMap<String, Double> current_doc = db_document_tfidf_normalized.get(document);
 			double running_total = 0.0;
+			
 			for (String term : query_tfidf_normalized.keySet()){
 				double value = query_tfidf_normalized.get(term) * (current_doc.containsKey(term) ? current_doc.get(term) : 0.0); 
 				running_total += value;		
 			}
+			
 			dot_product_docs.put(document, running_total);
 		}
 		
-		/*
-		 * Make the single atc score of each document available
-		 */
-//		HashMap<String, Double> document_atc_score = new HashMap<String, Double>();
-//		for(String document : db_document_tfidf_normalized.keySet()){	
-//			HashMap<String, Double> current_doc = db_document_tfidf_normalized.get(document);
-//			double running_total = 0.0;
-//			for (String term : current_doc.keySet()){
-//				double value = current_doc.get(term); 
-//				running_total += value;		
-//			}
-//		}
-//		
-		
+		//Collections.sort(dot_product_docs);
+		System.out.println(getTop(dot_product_docs, num_results));
 		return getTop(dot_product_docs, num_results);
 	}
 	

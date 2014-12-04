@@ -36,13 +36,13 @@ public class EvaluateQueries {
 
 	    // CharArraySet stopwords = new CharArraySet(Version.LUCENE_44,0,false);
 	    CharArraySet stopwords = new CharArraySet(0, false);
-		evaluate(cacmIndexDir, cacmDocsDir, cacmQueryFile,
-				cacmAnswerFile, cacmNumResults, stopwords);
+//		evaluate(cacmIndexDir, cacmDocsDir, cacmQueryFile,
+//				cacmAnswerFile, cacmNumResults, stopwords);
 
 		
-//		evaluate(medIndexDir, medDocsDir, medQueryFile,
-//				medAnswerFile, medNumResults, stopwords);
-		
+		evaluate(medIndexDir, medDocsDir, medQueryFile,
+				medAnswerFile, medNumResults, stopwords);
+
 
 	}
 	
@@ -103,8 +103,7 @@ public class EvaluateQueries {
 		return queryAnswerMap;
 	}
 
-	private static double precision(HashSet<String> answers,
-			List<String> results) {
+	private static double precision(HashSet<String> answers, List<String> results) {
 		double matches = 0;
 		for (String result : results) {
 			if (answers.contains(result))
@@ -118,14 +117,15 @@ public class EvaluateQueries {
 		double matches = 0.0;
 		double accurate = 0.0;
 		double total = 0.0;
-		for (String result : results) {
+		for (String result : answers) {
 			total++;
-			if (answers.contains(result.replaceAll(".txt",""))){
+			if (results.contains(result.replaceAll(".txt",""))){
 				accurate++;
 				matches += accurate/total;
 			}
 		}
-		return matches / results.size();
+		matches *= (2.0/3.0);
+		return matches / answers.size();
 	}
 	
 	private static void evaluate(String indexDir, String docsDir,
@@ -141,7 +141,7 @@ public class EvaluateQueries {
 
 		// Search and evaluate
 		String[] finarr = new String[queries.size()];
-		double sum = 0;
+		double sum = 0.0;
 //		System.out.println(queries.keySet());
 		for (Integer i : queries.keySet()) {
 				ArrayList<String> results = NewSearchEngine.runQuery(queries.get(i), numResults, docsDir, queryAnswers.get(i));
@@ -149,20 +149,25 @@ public class EvaluateQueries {
 				
 				ArrayList<String> clustering_results = CompleteClustering.analyze(20, results);
 				
-				double averagePrecision = averagePrecision(queryAnswers.get(i), clustering_results);
+				double averagePrecision = averagePrecision(queryAnswers.get(i), results);
+				double averagePrecision2 = averagePrecision(queryAnswers.get(i), clustering_results);
 				sum += averagePrecision;
 
-//				System.out.printf("\n Topic %d  \n", i);
-//				System.out.println("Results: " + results);
+				System.out.printf("\n Topic %d  \n", i);
+				System.out.println("Results no-clustering: " + results);
+				System.out.println("Average Precision:" + averagePrecision);
+				System.out.println("Results clustering: " + clustering_results);
+				System.out.println("Average Precision:" + averagePrecision2);
 
-//				finarr[i-1] = NewSearchEngine.Rocchio(4.0,8.0,tokenized, results);
+//				finarr[i-1] = NewSearchEngine.Rocchio(4.0,8.0,0.0,tokenized, results);
 
 //				System.out.println("Answers: " + queryAnswers.get(i));
 //				System.out.println(averagePrecision);
 
 				
 		}
-		System.out.println("MAP: " + sum/queries.size());
+
+//		System.out.println("MAP: " + sum/queries.size());
 //		for(int x = 0; x < finarr.length; x++){
 //			System.out.println(Integer.toString(x+1)+ ": " + finarr[x]);
 //		}
