@@ -39,11 +39,17 @@ public class NewSearchEngine{
 	HashMap<String,Integer>term_freq_in_query = new HashMap<String,Integer>();
 
 	static HashMap<String, HashMap<String,Double>> db_document_tfidf_normalized = new HashMap<String, HashMap<String,Double>>();
-	static HashMap<String, HashMap<String,Integer>> db;
+	public static HashMap<String, HashMap<String,Integer>> db;
 	static HashMap<String,Double> query_tokens;
 
 	////////////////////////////////////INDEXING//////////////////////////////////////
 
+	public static void print_results(List<String> results){
+		for (String g : results){
+			System.out.println(db.get(g));
+		}
+	}
+	
 	public static String Rocchio (double omicron, double alpha, double beta, HashMap<String,Integer> query_tokens_map, ArrayList<String> relevant_docs_array){
 		query_tokens = new HashMap<String,Double>();
 		for(String k : query_tokens_map.keySet()){
@@ -88,7 +94,7 @@ public class NewSearchEngine{
 		for(String token : query_tokens_map.keySet()){
 			query_token_words.remove(token);
 		}
-		return query_token_words.subList(0,7).toString();
+		return query_token_words.subList(0,10).toString();
 	}
 	
 	public static void buildIndex(String indexDir, String docsPath, CharArraySet stops) {
@@ -437,7 +443,7 @@ public class NewSearchEngine{
 		}
 		
 		//Collections.sort(dot_product_docs);
-		System.out.println(getTop(dot_product_docs, num_results));
+		//System.out.println(getTop(dot_product_docs, num_results));
 		return getTop(dot_product_docs, num_results);
 	}
 	

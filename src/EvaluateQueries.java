@@ -36,12 +36,12 @@ public class EvaluateQueries {
 
 	    // CharArraySet stopwords = new CharArraySet(Version.LUCENE_44,0,false);
 	    CharArraySet stopwords = new CharArraySet(0, false);
-		evaluate(cacmIndexDir, cacmDocsDir, cacmQueryFile,
-				cacmAnswerFile, cacmNumResults, stopwords);
+//		evaluate(cacmIndexDir, cacmDocsDir, cacmQueryFile,
+//				cacmAnswerFile, cacmNumResults, stopwords);
 
 		
-//		evaluate(medIndexDir, medDocsDir, medQueryFile,
-//				medAnswerFile, medNumResults, stopwords);
+		evaluate(medIndexDir, medDocsDir, medQueryFile,
+				medAnswerFile, medNumResults, stopwords);
 		
 
 	}
@@ -150,9 +150,13 @@ public class EvaluateQueries {
 				sum += averagePrecision;
 
 				System.out.printf("\n Topic %d  \n", i);
-				System.out.println("Results: " + results);
+				if(i==20){
+					System.out.println(tokenized);
+					System.out.println("Results: " + results);
+					NewSearchEngine.print_results(results);
+				}
 
-				finarr[i-1] = NewSearchEngine.Rocchio(4.0,8.0,0.0,tokenized, results);
+				finarr[i-1] = NewSearchEngine.Rocchio(4.0,16.0,0.0,tokenized, results);
 
 				System.out.println("Answers: " + queryAnswers.get(i));
 				System.out.println(averagePrecision);
