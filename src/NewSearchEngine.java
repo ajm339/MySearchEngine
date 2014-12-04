@@ -24,7 +24,7 @@ import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.analysis.util.CharArraySet;
 
-public class NewSearchEngine {
+public class NewSearchEngine{
 	static String data = "";
 
 	static CharArraySet stopwords;
@@ -37,22 +37,23 @@ public class NewSearchEngine {
 	HashMap<String,Integer>term_freq_in_query = new HashMap<String,Integer>();
 	static HashMap<String, HashMap<String,Double>> db_document_tfidf_normalized = new HashMap<String, HashMap<String,Double>>();
 	static HashMap<String, HashMap<String,Integer>> db;
-	
+	static HashMap<String,Double> query_tokens;
 
 	////////////////////////////////////INDEXING//////////////////////////////////////
 
-	public static void Rocchio (double alpha, double beta,HashMap<String,Integer> query_tokens_map, ArrayList<String> relevant_docs_array, ArrayList<String> nonrelevant_docs_array){
-		HashMap<String,Double> query_tokens = new HashMap<String,Double>();
+	public static String Rocchio (double alpha, double beta,HashMap<String,Integer> query_tokens_map, ArrayList<String> relevant_docs_array){
+		query_tokens = new HashMap<String,Double>();
 		for(String k : query_tokens_map.keySet()){
 			query_tokens.put(k, query_tokens_map.get(k).doubleValue());
 		}
 		ArrayList<HashMap<String,Integer>> relevant_docs = new ArrayList<HashMap<String,Integer>>();
-		for(String doc : relevant_docs_array){
-			relevant_docs.add(db.get(doc));
-		}
 		ArrayList<HashMap<String,Integer>> nonrelevant_docs = new ArrayList<HashMap<String,Integer>>();
-		for(String doc : nonrelevant_docs_array){
-			nonrelevant_docs.add(db.get(doc));
+		for(String doc : db.keySet()){
+			if(relevant_docs_array.contains(doc)){
+				relevant_docs.add(db.get(doc));
+			}else{
+				nonrelevant_docs.add(db.get(doc));
+			}
 		}
 		double true_alpha = alpha/relevant_docs.size();
 		double true_beta = beta/nonrelevant_docs.size();
@@ -66,14 +67,25 @@ public class NewSearchEngine {
 			}			
 		}		
 		for(int x = 0; x < nonrelevant_docs.size(); x++){
-			for(String key : relevant_docs.get(x).keySet()){
+			for(String key : nonrelevant_docs.get(x).keySet()){
 				if(query_tokens.get(key) == null){
 					query_tokens.put(key, -1.0*true_beta);
 				}else{
 					query_tokens.put(key, query_tokens.get(key) - true_beta);
 				}
 			}			
-		}		
+		}	
+		List<String> query_token_words = new ArrayList<String>();
+		query_token_words.addAll(query_tokens.keySet());
+		Collections.sort(query_token_words, new Comparator<String>(){
+            public int compare(String str1, String str2) {
+            	return query_tokens.get(str2).compareTo(query_tokens.get(str1));
+            }
+        });
+		for(String token : query_tokens_map.keySet()){
+			query_token_words.remove(token);
+		}
+		return query_token_words.subList(0,7).toString();
 	}
 	
 	public static void buildIndex(String indexDir, String docsPath, CharArraySet stops) {
@@ -141,14 +153,13 @@ public class NewSearchEngine {
 //			System.out.print("BM25: ");
 //			System.out.println(bm25(arrlist, answers, db, tokenized));
 //			System.out.print("ATCATC: ");
-			atcatc2(db, tokenized, num_results);
 //			System.out.print("ATNATN: ");
 //			System.out.println(atnatn(arrlist, answers, db, tokenized));
 //			System.out.print("ANNBPN: ");
 //			System.out.println(annbpn(arrlist, answers, db, tokenized));
 //			System.out.print("THE ALEXV6 (SUPER AWESOME) WEIGHTING ALGORITHM: ");
 //			System.out.println(my_weighting(arrlist, answers, db, tokenized));
-			return arrlist;
+			return atcatc2(db, tokenized, num_results);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
