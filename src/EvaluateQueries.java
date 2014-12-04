@@ -31,7 +31,7 @@ public class EvaluateQueries {
 		String medQueryFile = "data/med_processed.query";    // MED query file
 		String medAnswerFile = "data/med_processed.rel";   // MED relevance judgements file
 		
-		int cacmNumResults = 7;
+		int cacmNumResults = 100;
 		int medNumResults = 100;
 
 	    // CharArraySet stopwords = new CharArraySet(Version.LUCENE_44,0,false);
@@ -142,27 +142,29 @@ public class EvaluateQueries {
 		// Search and evaluate
 		String[] finarr = new String[queries.size()];
 		double sum = 0;
-		System.out.println(queries.keySet());
+//		System.out.println(queries.keySet());
 		for (Integer i : queries.keySet()) {
 				ArrayList<String> results = NewSearchEngine.runQuery(queries.get(i), numResults, docsDir, queryAnswers.get(i));
 				HashMap<String, Integer> tokenized = NewSearchEngine.tokenizeString(queries.get(i));
 				double averagePrecision = averagePrecision(queryAnswers.get(i), results);
 				sum += averagePrecision;
 
-				System.out.printf("\nTopic %d  \n", i);
+				System.out.printf("\n Topic %d  \n", i);
 				System.out.println("Results: " + results);
-				finarr[i-1] = NewSearchEngine.Rocchio(4.0,8.0,tokenized, results);
+				
+//				finarr[i-1] = NewSearchEngine.Rocchio(4.0,8.0,tokenized, results);
+				
 				System.out.println("Answers: " + queryAnswers.get(i));
 				System.out.println(averagePrecision);
-				System.out.println();
+//				System.out.println();
 				
 				
-				ArrayList<ArrayList<String>> clustering_results = CompleteClustering.calculateCluster(20, results);
+//				ArrayList<ArrayList<String>> clustering_results = CompleteClustering.calculateCluster(20, results);
 		}
-		System.out.println("MAP: " + sum/queries.size());
-		for(int x = 0; x < finarr.length; x++){
-			System.out.println(Integer.toString(x+1)+ ": " + finarr[x]);
-		}
+		System.out.println("MAP: " + sum);
+//		for(int x = 0; x < finarr.length; x++){
+//			System.out.println(Integer.toString(x+1)+ ": " + finarr[x]);
+//		}
 	}
 	
 	
