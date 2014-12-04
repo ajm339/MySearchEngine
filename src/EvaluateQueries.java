@@ -42,7 +42,6 @@ public class EvaluateQueries {
 		
 		evaluate(medIndexDir, medDocsDir, medQueryFile,
 				medAnswerFile, medNumResults, stopwords);
-		
 
 	}
 	
@@ -142,14 +141,19 @@ public class EvaluateQueries {
 		// Search and evaluate
 		String[] finarr = new String[queries.size()];
 		double sum = 0.0;
-		System.out.println(queries.keySet());
+//		System.out.println(queries.keySet());
 		for (Integer i : queries.keySet()) {
 				ArrayList<String> results = NewSearchEngine.runQuery(queries.get(i), numResults, docsDir, queryAnswers.get(i));
 				HashMap<String, Integer> tokenized = NewSearchEngine.tokenizeString(queries.get(i));
+				
+				ArrayList<String> clustering_results = CompleteClustering.analyze(20, results);
+				
 				double averagePrecision = averagePrecision(queryAnswers.get(i), results);
+				double averagePrecision2 = averagePrecision(queryAnswers.get(i), clustering_results);
 				sum += averagePrecision;
 
 				System.out.printf("\n Topic %d  \n", i);
+
 				if(i==20){
 					System.out.println(tokenized);
 					System.out.println("Results: " + results);
@@ -160,9 +164,10 @@ public class EvaluateQueries {
 
 				System.out.println("Answers: " + queryAnswers.get(i));
 				System.out.println(averagePrecision);
-				System.out.println(sum);
-				System.out.println();
+
+				
 		}
+
 		System.out.println("MAP: " + sum/queries.size());
 		for(int x = 0; x < finarr.length; x++){
 			System.out.println(Integer.toString(x+1)+ ": " + finarr[x]);
